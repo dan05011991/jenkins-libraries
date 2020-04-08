@@ -30,9 +30,12 @@ def call(Map pipelineParams) {
                     sh 'git add pom.xml'
                     sh 'git commit -m \'Automated commit: release project\''
 
-                    withCredentials([usernamePassword(credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sshagent (credentials: ['ssh-github']) {
                         sh('git push origin master')
                     }
+//                    withCredentials([usernamePassword(credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+//                        sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@ origin master')
+//                    }
 
                 }
             }
