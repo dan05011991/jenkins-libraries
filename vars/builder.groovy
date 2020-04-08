@@ -23,9 +23,7 @@ def call(Map pipelineParams) {
                     }
                 }
 
-
                 steps {
-                    sh 'ls'
                     sh 'mvn release:update-versions -B'
                     sh 'git add pom.xml'
                     sh 'git commit -m \'Automated commit: release project\''
@@ -33,10 +31,21 @@ def call(Map pipelineParams) {
                     sshagent (credentials: ['ssh-github']) {
                         sh('git push origin master')
                     }
-//                    withCredentials([usernamePassword(credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-//                        sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@ origin master')
-//                    }
 
+                    sh 'mvn clean build -Ddocker'
+                }
+            }
+
+            stage('Update deployment file') {
+
+                git(
+                    branch: "${pipelineParams.deploymentBranch}",
+                    url: "${pipelineParams.deploymentRepo}",
+                    credentialsId: 'ssh-github'
+                )
+
+                steps {
+                    sh 'docker-compose -f docker/docker-compose.yaml up -d'
                 }
             }
 
