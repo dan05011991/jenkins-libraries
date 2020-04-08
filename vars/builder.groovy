@@ -8,16 +8,19 @@ def call(Map pipelineParams) {
                 steps {
                     sh 'mkdir -p project'
 
-                    sh 'pwd; ls'
+                    dir('project') {
 
-                    // Get some code from a GitHub repository
-                    git(
-                        branch: "${env.GIT_BRANCH}",
-                        url: "${env.GIT_URL}",
-                        credentialsId: 'ssh-github'
-                    )
+                        sh 'pwd; ls'
 
-                    sh 'pwd; ls'
+                        // Get some code from a GitHub repository
+                        git(
+                                branch: "${env.GIT_BRANCH}",
+                                url: "${env.GIT_URL}",
+                                credentialsId: 'ssh-github'
+                        )
+
+                        sh 'pwd; ls'
+                    }
                 }
 
             }
