@@ -37,14 +37,14 @@ def call(Map pipelineParams) {
             }
 
             stage('Update deployment file') {
-
-                git(
-                    branch: "${pipelineParams.deploymentBranch}",
-                    url: "${pipelineParams.deploymentRepo}",
-                    credentialsId: 'ssh-github'
-                )
-
                 steps {
+                    git(
+                        branch: "${pipelineParams.deploymentBranch}",
+                        url: "${pipelineParams.deploymentRepo}",
+                        credentialsId: 'ssh-github'
+                    )
+
+
                     sh 'docker-compose -f docker/docker-compose.yaml up -d'
                 }
             }
