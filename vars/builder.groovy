@@ -23,7 +23,11 @@ def call(Map pipelineParams) {
                     }
                 }
 
+
                 steps {
+                    withMaven(maven : 'apache-maven-3.6.1') {
+                        bat' mvn test'
+                    }
                     sh 'mvn release:update-versions -B'
                     sh 'git add pom.xml'
                     sh 'git commit -m \'Automated commit: release project\''
