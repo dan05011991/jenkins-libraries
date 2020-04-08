@@ -59,7 +59,7 @@ def call(Map pipelineParams) {
                             ).trim()
                         }
 
-                        withDockerRegistry([ credentialsId: "2f7c1cda-f99d-415d-9cf7-e79b414112fc", url: "" ]) {
+                        withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
                             sh "docker build . -t ${pipelineParams.imageName}${tag}"
                             sh "docker push ${pipelineParams.imageName}${tag}"
                         }
