@@ -13,9 +13,9 @@ def call(Map pipelineParams) {
 
                         // Get some code from a GitHub repository
                         git(
-                                branch: "${env.GIT_BRANCH}",
-                                url: "${env.GIT_URL}",
-                                credentialsId: 'ssh-github'
+                            branch: "${env.GIT_BRANCH}",
+                            url: "${env.GIT_URL}",
+                            credentialsId: 'ssh-github'
                         )
 
                         sh 'pwd; ls'
@@ -54,21 +54,13 @@ def call(Map pipelineParams) {
                 steps {
 
                     dir('deployment') {
-                        
+
                         git(
                                 branch: "${pipelineParams.deploymentBranch}",
                                 url: "${pipelineParams.deploymentRepo}",
                                 credentialsId: 'ssh-github'
                         )
 
-                        sh 'MVN_VERSION=$(mvn -q \\\n' +
-                                '    -Dexec.executable=echo \\\n' +
-                                '    -Dexec.args=\'${project.version}\' \\\n' +
-                                '    --non-recursive \\\n' +
-                                '    exec:exec)'
-
-                        sh 'echo $MVN_VERSION'
-
                         sh 'pwd; ls'
 
 
@@ -76,7 +68,7 @@ def call(Map pipelineParams) {
 
                         sh 'pwd; ls'
 
-                        sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}$MVN_VERSION/" docker-compose.yaml'
+                        sh './update.sh ${pipelineParams.imageName} docker-compose.yaml ..'
                     }
                 }
             }
