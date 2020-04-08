@@ -24,7 +24,10 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh 'docker-compose -f docker/docker-compose.yaml up -d'
+                    sh 'mvn release:update-versions -B'
+                    sh 'git add pom.xml'
+                    sh 'git commit -m \'Automated commit: release project\''
+                    sh 'git push'
                 }
             }
 
