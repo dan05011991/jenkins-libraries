@@ -52,10 +52,12 @@ def call(Map pipelineParams) {
                             credentialsId: 'ssh'
                         )
 
-                        def tag = sh (
-                            script: 'mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                            returnStdout: true
-                        ).trim()
+                        script {
+                            def tag = sh(
+                                    script: 'mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                    returnStdout: true
+                            ).trim()
+                        }
 
                         withDockerRegistry([ credentialsId: "2f7c1cda-f99d-415d-9cf7-e79b414112fc", url: "" ]) {
                             sh "docker build . -t ${pipelineParams.imageName}${tag}"
