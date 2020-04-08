@@ -15,7 +15,7 @@ def call(Map pipelineParams) {
                         git(
                             branch: "${env.GIT_BRANCH}",
                             url: "${env.GIT_URL}",
-                            credentialsId: 'ssh-github'
+                            credentialsId: 'ssh'
                         )
 
                         sh 'pwd; ls'
@@ -58,7 +58,7 @@ def call(Map pipelineParams) {
                         git(
                                 branch: "${pipelineParams.deploymentBranch}",
                                 url: "${pipelineParams.deploymentRepo}",
-                                credentialsId: 'ssh-github'
+                                credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc'
                         )
 
                         sh 'pwd; ls'
