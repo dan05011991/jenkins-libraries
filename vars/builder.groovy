@@ -52,7 +52,7 @@ def call(Map pipelineParams) {
                             credentialsId: 'ssh'
                         )
 
-                        TAG = sh (
+                        def TAG = sh (
                             script: 'mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
                             returnStdout: true
                         ).trim()
