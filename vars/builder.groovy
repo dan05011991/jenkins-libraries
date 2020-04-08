@@ -25,6 +25,7 @@ def call(Map pipelineParams) {
 
 
                 steps {
+                    sh 'ls'
                     sh 'mvn release:update-versions -B'
                     sh 'git add pom.xml'
                     sh 'git commit -m \'Automated commit: release project\''
