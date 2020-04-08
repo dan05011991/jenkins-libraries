@@ -6,7 +6,7 @@ def call(Map pipelineParams) {
 
             stage('Build') { // for display purposes
                 steps {
-                    sh 'mkdir -p project'
+            //        sh 'mkdir -p project'
 
                     dir('project') {
 
