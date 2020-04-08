@@ -30,7 +30,7 @@ def call(Map pipelineParams) {
                     sh 'git add pom.xml'
                     sh 'git commit -m \'Automated commit: release project\''
 
-                    withCredentials([usernamePassword(credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc')]) {
+                    withCredentials([usernamePassword(credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc', passwordVariable: 'Abc19733791***', usernameVariable: 'dan05011991')]) {
                         sh('git push origin master')
                     }
 
