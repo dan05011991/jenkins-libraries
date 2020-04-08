@@ -10,7 +10,7 @@ def call(Map pipelineParams) {
                     git(
                         branch: "${env.GIT_BRANCH}",
                         url: "${env.GIT_URL}",
-                        credentialsId: '2f7c1cda-f99d-415d-9cf7-e79b414112fc'
+                        credentialsId: 'ssh-github'
                     )
                 }
 
