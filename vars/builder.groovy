@@ -1,10 +1,6 @@
 def call(Map pipelineParams) {
     pipeline {
         agent any
-//
-//        options {
-//            skipDefaultCheckout()
-//        }
 
         stages {
 
@@ -13,16 +9,11 @@ def call(Map pipelineParams) {
 
                     dir('project') {
 
-                        sh 'pwd; ls'
-
-                        // Get some code from a GitHub repository
                         git(
                             branch: "${env.GIT_BRANCH}",
                             url: "${env.GIT_URL}",
                             credentialsId: 'ssh'
                         )
-
-                        sh 'pwd; ls'
                     }
                 }
 
@@ -38,8 +29,6 @@ def call(Map pipelineParams) {
                 steps {
 
                     dir('project') {
-                        sh 'pwd; ls'
-
                         sh 'mvn release:update-versions -B'
                         sh 'git add pom.xml'
                         sh 'git commit -m \'Automated commit: release project\''
@@ -47,9 +36,32 @@ def call(Map pipelineParams) {
                         sshagent(credentials: ['ssh']) {
                             sh('git push origin master')
                         }
+                    }
+                }
+            }
 
-                        sh 'pwd; ls'
-                        //sh 'mvn clean build -Ddocker'
+            stage('Docker Build') {
+
+                steps {
+
+                    dir('project') {
+
+                        git(
+                            branch: "${env.GIT_BRANCH}",
+                            url: "${env.GIT_URL}",
+                            credentialsId: 'ssh'
+                        )
+
+                        TAG = sh (
+                            script: 'mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                            returnStdout: true
+                        ).trim()
+
+                        withDockerRegistry([ credentialsId: "2f7c1cda-f99d-415d-9cf7-e79b414112fc", url: "" ]) {
+                            sh "docker build . -t ${pipelineParams.imageName}${TAG}"
+                            sh "docker push ${pipelineParams.imageName}${TAG}"
+                        }
+
                     }
                 }
             }
@@ -60,17 +72,10 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         git(
-                                branch: "${pipelineParams.deploymentBranch}",
-                                url: "${pipelineParams.deploymentRepo}",
-                                credentialsId: 'ssh'
+                            branch: "${pipelineParams.deploymentBranch}",
+                            url: "${pipelineParams.deploymentRepo}",
+                            credentialsId: 'ssh'
                         )
-
-                        sh 'pwd; ls'
-
-
-
-
-                        sh 'pwd; ls'
 
                         sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .."
 
@@ -96,7 +101,7 @@ def call(Map pipelineParams) {
 
                 steps {
                     dir('deployment') {
-                        
+
                         git(
                                 branch: "${pipelineParams.deploymentBranch}",
                                 url: "${pipelineParams.deploymentRepo}",
