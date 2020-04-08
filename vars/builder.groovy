@@ -5,6 +5,12 @@ def call(Map pipelineParams) {
         stages {
 
             stage('Build') { // for display purposes
+
+                when {
+                    branch 'develop'
+                }
+
+
                 steps {
 
                     dir('project') {
@@ -20,9 +26,10 @@ def call(Map pipelineParams) {
             }
 
             stage('Maven Build') {
+                
                 when {
                     expression {
-                        pipelineParams.buildType == 'maven'
+                        pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop'
                     }
                 }
 
@@ -64,6 +71,10 @@ def call(Map pipelineParams) {
             }
 
             stage('Docker Build') {
+
+                when {
+                    branch 'develop'
+                }
 
                 steps {
 
