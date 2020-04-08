@@ -53,7 +53,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         git(
-                                branch: "${pipelineParams.deploymentBranch}",
+                                branch: "${env.GIT_BRANCH}",
                                 url: "${pipelineParams.deploymentRepo}",
                                 credentialsId: 'ssh'
                         )
@@ -114,7 +114,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         git(
-                                branch: "${pipelineParams.deploymentBranch}",
+                                branch: "${env.GIT_BRANCH}",
                                 url: "${pipelineParams.deploymentRepo}",
                                 credentialsId: 'ssh'
                         )
@@ -138,7 +138,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         git(
-                                branch: "${pipelineParams.deploymentBranch}",
+                                branch: "${env.GIT_BRANCH}",
                                 url: "${pipelineParams.deploymentRepo}",
                                 credentialsId: 'ssh'
                         )
