@@ -26,7 +26,7 @@ def call(Map pipelineParams) {
             }
 
             stage('Maven Build') {
-                
+
                 when {
                     expression {
                         pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop'
@@ -41,7 +41,7 @@ def call(Map pipelineParams) {
                         sh 'git commit -m \'Automated commit: release project\''
 
                         sshagent(credentials: ['ssh']) {
-                            sh('git push origin master')
+                            sh("git push origin ${env.GIT_BRANCH}")
                         }
                     }
                 }
@@ -63,7 +63,7 @@ def call(Map pipelineParams) {
                         sshagent(credentials: ['ssh']) {
                             sh('git add docker-compose.yaml')
                             sh('git commit -m \'New release\'')
-                            sh('git push origin master')
+                            sh("git push origin ${env.env.GIT_BRANCH}")
 
                         }
                     }
