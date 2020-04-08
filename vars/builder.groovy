@@ -43,12 +43,18 @@ def call(Map pipelineParams) {
                             '    -Dexec.args=\'${project.version}\' \\\n' +
                             '    --non-recursive \\\n' +
                             '    exec:exec)'
+
+                    sh 'echo $MVN_VERSION'
+
+                    sh 'ls'
                     
                     git(
                         branch: "${pipelineParams.deploymentBranch}",
                         url: "${pipelineParams.deploymentRepo}",
                         credentialsId: 'ssh-github'
                     )
+
+                    sh 'ls'
 
                     sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}$MVN_VERSION/" docker-compose.yaml'
                 }
