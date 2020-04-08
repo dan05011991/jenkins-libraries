@@ -38,14 +38,19 @@ def call(Map pipelineParams) {
 
             stage('Update deployment file') {
                 steps {
+                    sh 'MVN_VERSION=$(mvn -q \\\n' +
+                            '    -Dexec.executable=echo \\\n' +
+                            '    -Dexec.args=\'${project.version}\' \\\n' +
+                            '    --non-recursive \\\n' +
+                            '    exec:exec)'
+                    
                     git(
                         branch: "${pipelineParams.deploymentBranch}",
                         url: "${pipelineParams.deploymentRepo}",
                         credentialsId: 'ssh-github'
                     )
-
-
-                    sh 'docker-compose -f docker/docker-compose.yaml up -d'
+                    
+                    sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}:$MVN_VERSION/" docker-compose.yaml'
                 }
             }
 
