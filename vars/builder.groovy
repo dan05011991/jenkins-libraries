@@ -54,7 +54,7 @@ def call(Map pipelineParams) {
 
                         script {
                             def tag = sh(
-                                    script: 'mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                    script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
                                     returnStdout: true
                             ).trim()
                         }
