@@ -6,7 +6,6 @@ def call(Map pipelineParams) {
 
             stage('Build') { // for display purposes
                 steps {
-            //        sh 'mkdir -p project'
 
                     dir('project') {
 
@@ -33,44 +32,52 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh 'pwd; ls'
 
-                    sh 'mvn release:update-versions -B'
-                    sh 'git add pom.xml'
-                    sh 'git commit -m \'Automated commit: release project\''
+                    dir('project') {
+                        sh 'pwd; ls'
 
-                    sshagent (credentials: ['ssh-github']) {
-                        sh('git push origin master')
+                        sh 'mvn release:update-versions -B'
+                        sh 'git add pom.xml'
+                        sh 'git commit -m \'Automated commit: release project\''
+
+                        sshagent(credentials: ['ssh-github']) {
+                            sh('git push origin master')
+                        }
+
+                        sh 'pwd; ls'
+                        //sh 'mvn clean build -Ddocker'
                     }
-
-                    sh 'pwd; ls'
-                    //sh 'mvn clean build -Ddocker'
                 }
             }
 
             stage('Update deployment file') {
                 steps {
 
-                    sh 'MVN_VERSION=$(mvn -q \\\n' +
-                            '    -Dexec.executable=echo \\\n' +
-                            '    -Dexec.args=\'${project.version}\' \\\n' +
-                            '    --non-recursive \\\n' +
-                            '    exec:exec)'
+                    dir('deployment') {
+                        
+                        git(
+                                branch: "${pipelineParams.deploymentBranch}",
+                                url: "${pipelineParams.deploymentRepo}",
+                                credentialsId: 'ssh-github'
+                        )
 
-                    sh 'echo $MVN_VERSION'
+                        sh 'MVN_VERSION=$(mvn -q \\\n' +
+                                '    -Dexec.executable=echo \\\n' +
+                                '    -Dexec.args=\'${project.version}\' \\\n' +
+                                '    --non-recursive \\\n' +
+                                '    exec:exec)'
 
-                    sh 'pwd; ls'
+                        sh 'echo $MVN_VERSION'
+
+                        sh 'pwd; ls'
 
 
-                    git(
-                        branch: "${pipelineParams.deploymentBranch}",
-                        url: "${pipelineParams.deploymentRepo}",
-                        credentialsId: 'ssh-github'
-                    )
 
-                    sh 'pwd; ls'
 
-                    sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}$MVN_VERSION/" docker-compose.yaml'
+                        sh 'pwd; ls'
+
+                        sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}$MVN_VERSION/" docker-compose.yaml'
+                    }
                 }
             }
 
