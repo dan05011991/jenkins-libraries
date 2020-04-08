@@ -57,13 +57,12 @@ def call(Map pipelineParams) {
                                     script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
                                     returnStdout: true
                             ).trim()
-                        }
 
-                        withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                            sh "docker build . -t ${pipelineParams.imageName}${tag}"
-                            sh "docker push ${pipelineParams.imageName}${tag}"
+                            withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                                sh "docker build . -t ${pipelineParams.imageName}${tag}"
+                                sh "docker push ${pipelineParams.imageName}${tag}"
+                            }
                         }
-
                     }
                 }
             }
