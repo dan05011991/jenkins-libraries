@@ -68,7 +68,7 @@ def call(Map pipelineParams) {
 
                         sh 'pwd; ls'
 
-                        sh './update.sh tets docker-compose.yaml ..'
+                        sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .."
                     }
                 }
             }
