@@ -6,12 +6,18 @@ def call(Map pipelineParams) {
 
             stage('Build') { // for display purposes
                 steps {
+                    sh 'mkdir -p project'
+
+                    sh 'ls'
+
                     // Get some code from a GitHub repository
                     git(
                         branch: "${env.GIT_BRANCH}",
                         url: "${env.GIT_URL}",
                         credentialsId: 'ssh-github'
                     )
+
+                    sh 'ls'
                 }
 
             }
@@ -24,6 +30,8 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
+                    sh 'ls'
+
                     sh 'mvn release:update-versions -B'
                     sh 'git add pom.xml'
                     sh 'git commit -m \'Automated commit: release project\''
@@ -32,12 +40,14 @@ def call(Map pipelineParams) {
                         sh('git push origin master')
                     }
 
+                    sh 'ls'
                     //sh 'mvn clean build -Ddocker'
                 }
             }
 
             stage('Update deployment file') {
                 steps {
+
                     sh 'MVN_VERSION=$(mvn -q \\\n' +
                             '    -Dexec.executable=echo \\\n' +
                             '    -Dexec.args=\'${project.version}\' \\\n' +
@@ -47,6 +57,7 @@ def call(Map pipelineParams) {
                     sh 'echo $MVN_VERSION'
 
                     sh 'ls'
+
                     
                     git(
                         branch: "${pipelineParams.deploymentBranch}",
