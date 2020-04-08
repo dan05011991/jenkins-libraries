@@ -63,7 +63,7 @@ def call(Map pipelineParams) {
                         sshagent(credentials: ['ssh']) {
                             sh('git add docker-compose.yaml')
                             sh('git commit -m \'New release\'')
-                            sh("git push origin ${env.env.GIT_BRANCH}")
+                            sh("git push origin ${env.GIT_BRANCH}")
 
                         }
                     }
