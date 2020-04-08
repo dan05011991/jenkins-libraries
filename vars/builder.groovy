@@ -69,6 +69,13 @@ def call(Map pipelineParams) {
                         sh 'pwd; ls'
 
                         sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .."
+
+                        sshagent(credentials: ['ssh']) {
+                            sh('git add docker-compose.yaml')
+                            sh('git commit -m \'docker-compose.yaml\'')
+                            sh('git push origin master')
+
+                        }
                     }
                 }
             }
@@ -84,7 +91,9 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh 'docker-compose -f docker/docker-compose.yaml up -d'
+                    dir('deployment') {
+                        sh 'docker-compose -f docker-compose.yaml up -d'
+                    }
                 }
             }
 
@@ -99,7 +108,9 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh 'docker-compose -f docker/docker-compose.yaml up -d'
+                    dir('deployment') {
+                        sh 'docker-compose -f docker-compose.yaml up -d'
+                    }
                 }
             }
         }
