@@ -8,7 +8,7 @@ def call(Map pipelineParams) {
                 steps {
                     sh 'mkdir -p project'
 
-                    sh 'ls'
+                    sh 'pwd; ls'
 
                     // Get some code from a GitHub repository
                     git(
@@ -17,7 +17,7 @@ def call(Map pipelineParams) {
                         credentialsId: 'ssh-github'
                     )
 
-                    sh 'ls'
+                    sh 'pwd; ls'
                 }
 
             }
@@ -30,7 +30,7 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh 'ls'
+                    sh 'pwd; ls'
 
                     sh 'mvn release:update-versions -B'
                     sh 'git add pom.xml'
@@ -40,7 +40,7 @@ def call(Map pipelineParams) {
                         sh('git push origin master')
                     }
 
-                    sh 'ls'
+                    sh 'pwd; ls'
                     //sh 'mvn clean build -Ddocker'
                 }
             }
@@ -56,16 +56,16 @@ def call(Map pipelineParams) {
 
                     sh 'echo $MVN_VERSION'
 
-                    sh 'ls'
+                    sh 'pwd; ls'
 
-                    
+
                     git(
                         branch: "${pipelineParams.deploymentBranch}",
                         url: "${pipelineParams.deploymentRepo}",
                         credentialsId: 'ssh-github'
                     )
 
-                    sh 'ls'
+                    sh 'pwd; ls'
 
                     sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}$MVN_VERSION/" docker-compose.yaml'
                 }
