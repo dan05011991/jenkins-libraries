@@ -44,7 +44,7 @@ def call(Map pipelineParams) {
                         sh 'git add pom.xml'
                         sh 'git commit -m \'Automated commit: release project\''
 
-                        sshagent(credentials: ['ssh-github']) {
+                        sshagent(credentials: ['ssh']) {
                             sh('git push origin master')
                         }
 
