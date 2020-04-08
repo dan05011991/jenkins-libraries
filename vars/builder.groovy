@@ -40,6 +40,29 @@ def call(Map pipelineParams) {
                 }
             }
 
+            stage('Update deployment file') {
+                steps {
+
+                    dir('deployment') {
+
+                        git(
+                                branch: "${pipelineParams.deploymentBranch}",
+                                url: "${pipelineParams.deploymentRepo}",
+                                credentialsId: 'ssh'
+                        )
+
+                        sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .."
+
+                        sshagent(credentials: ['ssh']) {
+                            sh('git add docker-compose.yaml')
+                            sh('git commit -m \'New release\'')
+                            sh('git push origin master')
+
+                        }
+                    }
+                }
+            }
+
             stage('Docker Build') {
 
                 steps {
@@ -66,30 +89,6 @@ def call(Map pipelineParams) {
                     }
                 }
             }
-
-            stage('Update deployment file') {
-                steps {
-
-                    dir('deployment') {
-
-                        git(
-                            branch: "${pipelineParams.deploymentBranch}",
-                            url: "${pipelineParams.deploymentRepo}",
-                            credentialsId: 'ssh'
-                        )
-
-                        sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .."
-
-                        sshagent(credentials: ['ssh']) {
-                            sh('git add docker-compose.yaml')
-                            sh('git commit -m \'New release\'')
-                            sh('git push origin master')
-
-                        }
-                    }
-                }
-            }
-
 
             stage('Deploy to Ref') {
                 agent {
