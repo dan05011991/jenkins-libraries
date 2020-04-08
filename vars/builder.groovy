@@ -32,7 +32,7 @@ def call(Map pipelineParams) {
                         sh('git push origin master')
                     }
 
-                    sh 'mvn clean build -Ddocker'
+                    //sh 'mvn clean build -Ddocker'
                 }
             }
 
