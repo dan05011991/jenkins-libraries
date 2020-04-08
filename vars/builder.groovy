@@ -49,8 +49,8 @@ def call(Map pipelineParams) {
                         url: "${pipelineParams.deploymentRepo}",
                         credentialsId: 'ssh-github'
                     )
-                    
-                    sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}:$MVN_VERSION/" docker-compose.yaml'
+
+                    sh 'sed -i -E "s/${pipelineParams.imageName}.+/${pipelineParams.imageName}$MVN_VERSION/" docker-compose.yaml'
                 }
             }
 
