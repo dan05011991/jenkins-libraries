@@ -96,6 +96,13 @@ def call(Map pipelineParams) {
 
                 steps {
                     dir('deployment') {
+                        
+                        git(
+                                branch: "${pipelineParams.deploymentBranch}",
+                                url: "${pipelineParams.deploymentRepo}",
+                                credentialsId: 'ssh'
+                        )
+
                         sh 'docker-compose -f docker-compose.yaml up -d'
                     }
                 }
@@ -113,6 +120,13 @@ def call(Map pipelineParams) {
 
                 steps {
                     dir('deployment') {
+
+                        git(
+                                branch: "${pipelineParams.deploymentBranch}",
+                                url: "${pipelineParams.deploymentRepo}",
+                                credentialsId: 'ssh'
+                        )
+
                         sh 'docker-compose -f docker-compose.yaml up -d'
                     }
                 }
