@@ -47,7 +47,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Compose deployment updated') {
+            stage('Compose deployment update') {
                 steps {
 
                     dir('deployment') {
