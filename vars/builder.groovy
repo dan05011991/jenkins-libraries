@@ -33,6 +33,15 @@ def call(Map pipelineParams) {
                         )
                     }
                 }
+
+                private boolean lastCommitIsBumpCommit() {
+                    lastCommit = sh([script: 'git log -1', returnStdout: true])
+                    if (lastCommit.contains("[git-version-bump]")) {
+                        return true
+                    } else {
+                        return false
+                    }
+                }
             }
 
             stage('CI Build') {
@@ -195,15 +204,6 @@ def call(Map pipelineParams) {
                     }
                 }
             }
-        }
-    }
-
-    private boolean lastCommitIsBumpCommit() {
-        lastCommit = sh([script: 'git log -1', returnStdout: true])
-        if (lastCommit.contains("[git-version-bump]")) {
-            return true
-        } else {
-            return false
         }
     }
 }
