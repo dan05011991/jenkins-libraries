@@ -2,6 +2,10 @@ def call(Map pipelineParams) {
     pipeline {
         agent any
 
+        options {
+            disableConcurrentBuilds()
+        }
+
         stages {
 
             stage('Checkout') {
@@ -44,7 +48,7 @@ def call(Map pipelineParams) {
                         env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop'
                     }
                 }
-                
+
                 steps {
                     sh 'mvn -B -DskipTests clean package'
                 }
