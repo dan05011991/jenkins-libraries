@@ -21,22 +21,14 @@ def call(Map pipelineParams) {
             stage('Checkout') {
 
                 when {
+                    expression: {
+                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                    }
                     branch 'develop'
                 }
 
 
                 steps {
-                    script {
-                        if (lastCommitIsBumpCommit()) {
-                            currentBuild.result = 'SUCCESS'
-                            echo('Last commit bumped the version, aborting the build to prevent a loop.')
-                            return
-                        } else {
-                            echo('Last commit is not a bump commit, job continues as normal.')
-                        }
-                    }
-
-
                     dir('project') {
 
                         git(
@@ -52,7 +44,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop'
+                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop' && !lastCommitIsBumpCommit()
                     }
                 }
 
@@ -65,7 +57,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop'
+                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop' && !lastCommitIsBumpCommit()
                     }
                 }
 
@@ -78,7 +70,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop'
+                        pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
                     }
                 }
 
@@ -100,7 +92,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'develop'
+                        env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
                     }
                 }
 
@@ -134,7 +126,9 @@ def call(Map pipelineParams) {
             stage('Docker build and tag') {
 
                 when {
-                    branch 'develop'
+                    expression {
+                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                    }
                 }
 
                 steps {
@@ -168,7 +162,9 @@ def call(Map pipelineParams) {
                 }
 
                 when {
-                    branch 'develop'
+                    expression {
+                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                    }
                 }
 
                 steps {
@@ -192,7 +188,9 @@ def call(Map pipelineParams) {
                 }
 
                 when {
-                    branch 'master'
+                    expression {
+                        env.GIT_BRANCH == 'master' && !lastCommitIsBumpCommit()
+                    }
                 }
 
                 steps {
