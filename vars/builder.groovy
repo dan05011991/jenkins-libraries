@@ -21,7 +21,7 @@ def call(Map pipelineParams) {
             stage('Checkout') {
 
                 when {
-                    expression: {
+                    expression {
                         env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
                     }
                     branch 'develop'
