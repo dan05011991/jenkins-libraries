@@ -22,7 +22,32 @@ def call(Map pipelineParams) {
                         )
                     }
                 }
+            }
 
+            stage('CI Build') {
+
+                when {
+                    expression {
+                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop'
+                    }
+                }
+
+                steps {
+                    sh 'mvn -B -DskipTests clean package'
+                }
+            }
+
+            stage('CI Test') {
+
+                when {
+                    expression {
+                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop'
+                    }
+                }
+                
+                steps {
+                    sh 'mvn -B -DskipTests clean package'
+                }
             }
 
             stage('Maven version update') {
@@ -48,6 +73,13 @@ def call(Map pipelineParams) {
             }
 
             stage('Compose deployment update') {
+
+                when {
+                    expression {
+                        env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'develop'
+                    }
+                }
+
                 steps {
 
                     dir('project') {
