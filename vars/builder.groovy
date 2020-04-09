@@ -1,6 +1,7 @@
+
 def lastCommitIsBumpCommit() {
     lastCommit = sh([script: 'git log -1', returnStdout: true])
-    if (lastCommit.contains("[git-version-bump]")) {
+    if (lastCommit.contains("[Automated commit: version bump]")) {
         return true
     } else {
         return false
@@ -85,7 +86,7 @@ def call(Map pipelineParams) {
                     dir('project') {
                         sh 'mvn release:update-versions -B'
                         sh 'git add pom.xml'
-                        sh 'git commit -m \'Automated commit: release project\''
+                        sh 'git commit -m \'[Automated commit: version bump]\''
 
                         sshagent(credentials: ['ssh']) {
                             sh("git push origin ${env.GIT_BRANCH}")
