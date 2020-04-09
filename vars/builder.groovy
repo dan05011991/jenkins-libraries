@@ -1,3 +1,12 @@
+def lastCommitIsBumpCommit() {
+    lastCommit = sh([script: 'git log -1', returnStdout: true])
+    if (lastCommit.contains("[git-version-bump]")) {
+        return true
+    } else {
+        return false
+    }
+}
+
 def call(Map pipelineParams) {
     pipeline {
         agent any
@@ -31,15 +40,6 @@ def call(Map pipelineParams) {
                             url: "${env.GIT_URL}",
                             credentialsId: 'ssh'
                         )
-                    }
-                }
-
-                private boolean lastCommitIsBumpCommit() {
-                    lastCommit = sh([script: 'git log -1', returnStdout: true])
-                    if (lastCommit.contains("[git-version-bump]")) {
-                        return true
-                    } else {
-                        return false
                     }
                 }
             }
