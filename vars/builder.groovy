@@ -4,7 +4,7 @@ def call(Map pipelineParams) {
 
         stages {
 
-            stage('Build') { // for display purposes
+            stage('Checkout') {
 
                 when {
                     branch 'develop'
@@ -25,7 +25,7 @@ def call(Map pipelineParams) {
 
             }
 
-            stage('Maven Build') {
+            stage('Maven version update') {
 
                 when {
                     expression {
@@ -47,7 +47,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Update deployment file') {
+            stage('Compose deployment updated') {
                 steps {
 
                     dir('deployment') {
@@ -66,7 +66,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Docker Build') {
+            stage('Docker build and tag') {
 
                 when {
                     branch 'develop'
