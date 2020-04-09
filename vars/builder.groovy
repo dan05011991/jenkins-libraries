@@ -18,13 +18,26 @@ def call(Map pipelineParams) {
 
         stages {
 
+            stage('Is Bump Commit?') {
+
+                when {
+                    expression {
+                        lastCommitIsBumpCommit()
+                    }
+                }
+
+
+                steps {
+                    echo "This is a bump commit build - exiting early"
+                }
+            }
+
             stage('Checkout') {
 
                 when {
                     expression {
                         env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
                     }
-                    branch 'develop'
                 }
 
 
