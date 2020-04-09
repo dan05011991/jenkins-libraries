@@ -10,6 +10,13 @@ def call(Map pipelineParams) {
 
             stage('Checkout') {
 
+                if (lastCommitIsBumpCommit()) {
+                    currentBuild.result = 'ABORTED'
+                    error('Last commit bumped the version, aborting the build to prevent a loop.')
+                } else {
+                    echo('Last commit is not a bump commit, job continues as normal.')
+                }
+
                 when {
                     branch 'develop'
                 }
@@ -188,6 +195,15 @@ def call(Map pipelineParams) {
                     }
                 }
             }
+        }
+    }
+
+    private boolean lastCommitIsBumpCommit() {
+        lastCommit = sh([script: 'git log -1', returnStdout: true])
+        if (lastCommit.contains("[git-version-bump]")) {
+            return true
+        } else {
+            return false
         }
     }
 }
