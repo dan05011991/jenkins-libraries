@@ -29,7 +29,8 @@ def call(Map pipelineParams) {
                     script {
                         if (lastCommitIsBumpCommit()) {
                             currentBuild.result = 'SUCCESS'
-                            error('Last commit bumped the version, aborting the build to prevent a loop.')
+                            echo('Last commit bumped the version, aborting the build to prevent a loop.')
+                            return
                         } else {
                             echo('Last commit is not a bump commit, job continues as normal.')
                         }
