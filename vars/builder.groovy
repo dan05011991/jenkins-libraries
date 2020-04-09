@@ -62,8 +62,8 @@ def call(Map pipelineParams) {
 
                         sshagent(credentials: ['ssh']) {
                             sh('git add docker-compose.yaml')
-                            sh('git commit -m \'New release\'')
-                            sh("git push origin ${env.GIT_BRANCH}")
+                            sh('git commit -m "New release"')
+                            sh("if [[ \$(git diff | wc -l) -ge 0 ]]; then git push origin ${env.GIT_BRANCH} ; fi;")
 
                         }
                     }
