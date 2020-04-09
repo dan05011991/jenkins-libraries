@@ -61,9 +61,12 @@ def call(Map pipelineParams) {
                         sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .."
 
                         sshagent(credentials: ['ssh']) {
-                            sh('git add docker-compose.yaml')
-                            sh('git commit -m "New release"')
-                            sh("if [[ \$(git diff | wc -l) -ge 0 ]]; then git push origin ${env.GIT_BRANCH} ; fi;")
+
+                            sh("if [[ \$(git diff | wc -l) -ge 0 ]]; then " +
+                                    "git add docker-compose.yaml" +
+                                    "git commit -m \"New release\"" +
+                                    "git push origin ${env.GIT_BRANCH} ; " +
+                                "fi;")
 
                         }
                     }
