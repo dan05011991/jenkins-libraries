@@ -50,6 +50,15 @@ def call(Map pipelineParams) {
             stage('Compose deployment update') {
                 steps {
 
+                    dir('project') {
+
+                        git(
+                            branch: "${env.GIT_BRANCH}",
+                            url: "${env.GIT_URL}",
+                            credentialsId: 'ssh'
+                        )
+                    }
+
                     dir('deployment') {
 
                         git(
