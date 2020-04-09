@@ -60,7 +60,7 @@ def call(Map pipelineParams) {
 
                         sshagent(credentials: ['ssh']) {
 
-                            sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml .. ${env.GIT_BRANCH}"
+                            sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml ../project ${env.GIT_BRANCH}"
                         }
                     }
                 }
