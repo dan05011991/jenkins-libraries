@@ -14,6 +14,7 @@ def call(Map pipelineParams) {
 
         options {
             disableConcurrentBuilds()
+            //skipDefaultCheckout(true)
         }
 
         stages {
