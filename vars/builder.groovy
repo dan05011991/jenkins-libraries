@@ -30,7 +30,10 @@ def call(Map pipelineParams) {
 
                 steps {
                     echo "This is a bump commit build - exiting early"
-                    currentBuild.result = currentBuild.getPreviousBuild().result
+
+                    script {
+                        currentBuild.result = currentBuild.getPreviousBuild().result
+                    }
                 }
             }
 
