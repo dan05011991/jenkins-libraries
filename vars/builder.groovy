@@ -137,14 +137,14 @@ def call(Map pipelineParams) {
                                 REMOTE_BRANCH=${env.GIT_BRANCH}
                                 
                                 
-                                SNAPSHOT=\$(mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                                SNAPSHOT=\$(mvn -f \$PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args='\${project.version}' --non-recursive exec:exec)
                                 
-                                sed -i -E "s/$IMAGE.+/$IMAGE$SNAPSHOT/" $COMPOSE_FILE
+                                sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
                                 
                                 if [ \$(git diff | wc -l) -gt 0 ]; then
                                     git add docker-compose.yaml
                                     git commit -m "New release"
-                                    git push origin $REMOTE_BRANCH
+                                    git push origin \$REMOTE_BRANCH
                                 fi
 
                             """
