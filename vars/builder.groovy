@@ -130,8 +130,25 @@ def call(Map pipelineParams) {
                         )
 
                         sshagent(credentials: ['ssh']) {
+                            sh """
+                                IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
+                                COMPOSE_FILE=docker-compose.yaml
+                                PROJECT_DIR=../project
+                                REMOTE_BRANCH=${env.GIT_BRANCH}
+                                
+                                
+                                SNAPSHOT=\$(mvn -f $PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                                
+                                sed -i -E "s/$IMAGE.+/$IMAGE$SNAPSHOT/" $COMPOSE_FILE
+                                
+                                if [ \$(git diff | wc -l) -gt 0 ]; then
+                                    git add docker-compose.yaml
+                                    git commit -m "New release"
+                                    git push origin $REMOTE_BRANCH
+                                fi
 
-                            sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml ../project ${env.GIT_BRANCH}"
+                            """
+                           // sh "./update.sh ${pipelineParams.imageName} docker-compose.yaml ../project ${env.GIT_BRANCH}"
                         }
                     }
                 }
