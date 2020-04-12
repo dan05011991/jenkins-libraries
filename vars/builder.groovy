@@ -14,6 +14,7 @@ def call(Map pipelineParams) {
 
         options {
             disableConcurrentBuilds()
+            skipDefaultCheckout(true)
         }
 
         stages {
@@ -29,6 +30,12 @@ def call(Map pipelineParams) {
 
                 steps {
                     echo "This is a bump commit build - exiting early"
+
+                    git(
+                        branch: "${env.GIT_BRANCH}",
+                        url: "${env.GIT_URL}",
+                        credentialsId: 'ssh'
+                    )
 
                     script {
                         currentBuild.result = currentBuild.getPreviousBuild().result
