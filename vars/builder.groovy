@@ -124,8 +124,6 @@ def call(Map pipelineParams) {
                                 IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
                                 COMPOSE_FILE=docker-compose.yaml
                                 PROJECT_DIR=../project
-                                REMOTE_BRANCH=${env.GIT_BRANCH}
-                                
                                 
                                 SNAPSHOT=\$(mvn -f \$PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args='\${project.version}' --non-recursive exec:exec)
 
@@ -134,9 +132,7 @@ def call(Map pipelineParams) {
                                 if [ \$(git diff | wc -l) -gt 0 ]; then
                                     git add docker-compose.yaml
                                     git commit -m "New release"
-                                    git push origin \$REMOTE_BRANCH
                                 fi
-
                             """
                         }
                     }
@@ -170,6 +166,10 @@ def call(Map pipelineParams) {
                             withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
                                 sh "docker build . -t ${pipelineParams.imageName}${tag}"
                                 sh "docker push ${pipelineParams.imageName}${tag}"
+                            }
+
+                            sshagent(credentials: ['ssh']) {
+                                sh "git push origin ${env.GIT_BRANCH}"
                             }
                         }
                     }
