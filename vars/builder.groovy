@@ -128,7 +128,7 @@ def call(Map pipelineParams) {
                                 
                                 
                                 SNAPSHOT=\$(mvn -f \$PROJECT_DIR/pom.xml -q -Dexec.executable=echo -Dexec.args='\${project.version}' --non-recursive exec:exec)
-                                hgeuirhgurheiu
+
                                 sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
                                 
                                 if [ \$(git diff | wc -l) -gt 0 ]; then
