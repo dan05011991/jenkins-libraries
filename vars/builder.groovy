@@ -57,20 +57,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('CI Build') {
-
-                when {
-                    expression {
-                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop' && !lastCommitIsBumpCommit()
-                    }
-                }
-
-                steps {
-                    sh 'mvn -B -DskipTests clean package'
-                }
-            }
-
-            stage('CI Test') {
+            stage('CI Build & Test') {
 
                 when {
                     expression {
