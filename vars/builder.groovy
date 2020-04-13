@@ -66,7 +66,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        isBumpCommit
+                        IS_BUMP_COMMIT
                     }
                 }
 
