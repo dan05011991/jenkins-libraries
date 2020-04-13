@@ -105,7 +105,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         script {
-                            env.docker_tag_version = sh(
+                            docker_tag_version = sh(
                                     script: 'mvn -f ../project/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
                                     returnStdout: true
                             ).trim()
@@ -116,7 +116,7 @@ def call(Map pipelineParams) {
                                 IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
                                 COMPOSE_FILE=docker-compose.yaml
                                 PROJECT_DIR=../project
-                                SNAPSHOT=${env.docker_tag_version}
+                                SNAPSHOT=${docker_tag_version}
                         
                                 sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
                                 
@@ -144,7 +144,7 @@ def call(Map pipelineParams) {
                     dir('project') {
 
                         script {
-                            sh "docker build . -t ${pipelineParams.imageName}${env.docker_tag_version}"
+                            sh "docker build . -t ${pipelineParams.imageName}${docker_tag_version}"
                         }
                     }
                 }
@@ -162,7 +162,7 @@ def call(Map pipelineParams) {
                     dir('project') {
                         script {
                             withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                                sh "docker push ${pipelineParams.imageName}${env.docker_tag_version}"
+                                sh "docker push ${pipelineParams.imageName}${docker_tag_version}"
                             }
                         }
                     }
