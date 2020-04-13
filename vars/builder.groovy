@@ -175,7 +175,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Push docker update') {
+            stage('Push docker image') {
 
                 when {
                     expression {
@@ -194,7 +194,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Push project update') {
+            stage('Push pom update') {
 
                 when {
                     expression {
@@ -211,7 +211,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Push deployment update') {
+            stage('Push compose update') {
 
                 when {
                     expression {
@@ -227,8 +227,6 @@ def call(Map pipelineParams) {
                     }
                 }
             }
-
-
 
             stage('Deploy to Ref') {
                 agent {
