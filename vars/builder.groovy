@@ -175,59 +175,63 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Push docker update') {
+            stage('Push changes') {
+                stages {
+                    stage('Push docker update') {
 
-                when {
-                    expression {
-                        isRefBuild() && !IS_BUMP_COMMIT
+                        when {
+                            expression {
+                                isRefBuild() && !IS_BUMP_COMMIT
+                            }
+                        }
+
+                        steps {
+                            dir('project') {
+                                script {
+                                    withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                                        sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
 
-                steps {
-                    dir('project') {
-                        script {
-                            withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                                sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                    stage('Push project update') {
+
+                        when {
+                            expression {
+                                isRefBuild() && !IS_BUMP_COMMIT
+                            }
+                        }
+
+                        steps {
+                            dir('project') {
+                                sshagent(credentials: ['ssh']) {
+                                    sh "git push origin ${SOURCE_BRANCH}"
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Push deployment update') {
+
+                        when {
+                            expression {
+                                !IS_BUMP_COMMIT
+                            }
+                        }
+
+                        steps {
+                            dir('deployment') {
+                                sshagent(credentials: ['ssh']) {
+                                    sh "git push origin ${SOURCE_BRANCH}"
+                                }
                             }
                         }
                     }
                 }
             }
-
-            stage('Push project update') {
-
-                when {
-                    expression {
-                        isRefBuild() && !IS_BUMP_COMMIT
-                    }
-                }
-
-                steps {
-                    dir('project') {
-                        sshagent(credentials: ['ssh']) {
-                            sh "git push origin ${SOURCE_BRANCH}"
-                        }
-                    }
-                }
-            }
-
-            stage('Push deployment update') {
-
-                when {
-                    expression {
-                        !IS_BUMP_COMMIT
-                    }
-                }
-
-                steps {
-                    dir('deployment') {
-                        sshagent(credentials: ['ssh']) {
-                            sh "git push origin ${SOURCE_BRANCH}"
-                        }
-                    }
-                }
-            }
-
+            
             stage('Deploy to Ref') {
                 agent {
                     label 'ref'
