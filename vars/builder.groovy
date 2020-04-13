@@ -54,6 +54,14 @@ def call(Map pipelineParams) {
                             credentialsId: 'ssh'
                         )
                     }
+
+                    dir('deployment') {
+                        git(
+                            branch: "${env.GIT_BRANCH}",
+                            url: "${pipelineParams.deploymentRepo}",
+                            credentialsId: 'ssh'
+                        )
+                    }
                 }
             }
 
@@ -100,12 +108,6 @@ def call(Map pipelineParams) {
 
 
                     dir('deployment') {
-
-                        git(
-                                branch: "${env.GIT_BRANCH}",
-                                url: "${pipelineParams.deploymentRepo}",
-                                credentialsId: 'ssh'
-                        )
 
                         sshagent(credentials: ['ssh']) {
                             sh """
