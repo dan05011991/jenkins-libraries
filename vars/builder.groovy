@@ -38,7 +38,7 @@ def call(Map pipelineParams) {
                 steps {
                     dir('project') {
                         script {
-                            println "${SOURCE}"
+                            println "$SOURCE"
                         }
 
                         git(
