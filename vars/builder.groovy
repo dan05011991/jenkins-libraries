@@ -146,6 +146,10 @@ def call(Map pipelineParams) {
 
                         script {
                             sh "docker build . -t ${pipelineParams.imageName}${env.docker_tag_version}"
+
+                            withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                                sh "docker push ${pipelineParams.imageName}${env.docker_tag_version}"
+                            }
                         }
                     }
                 }
@@ -153,13 +157,6 @@ def call(Map pipelineParams) {
 
             stage('Commit changes') {
                 steps {
-
-                    script {
-                        withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                            sh "docker push ${pipelineParams.imageName}${env.docker_tag_version}"
-                        }
-                    }
-
                     dir('project') {
                         sshagent(credentials: ['ssh']) {
                             sh "git push origin ${env.GIT_BRANCH}"
