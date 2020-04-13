@@ -28,7 +28,7 @@ def call(Map pipelineParams) {
 
         environment {
             SOURCE_BRANCH = BRANCH_NAME
-            SOURCE_URL = scm.userRemoteConfigs[0].url,
+            SOURCE_URL = scm.userRemoteConfigs[0].url
             SOURCE_CLONE_TYPE = 'ssh'
         }
 
