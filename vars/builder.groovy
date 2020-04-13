@@ -106,10 +106,12 @@ def call(Map pipelineParams) {
 
                     dir('deployment') {
 
-                        env.docker_tag_version = sh(
-                                script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                returnStdout: true
-                        ).trim()
+                        script {
+                            env.docker_tag_version = sh(
+                                    script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                    returnStdout: true
+                            ).trim()
+                        }
 
                         sshagent(credentials: ['ssh']) {
                             sh """
