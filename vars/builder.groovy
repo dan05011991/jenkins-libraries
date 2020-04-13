@@ -8,31 +8,19 @@ def lastCommitIsBumpCommit() {
     }
 }
 
+def isRefBuild() {
+    return sourceBranch == 'develop'
+}
+
+def isOpsBuild() {
+    return sourceBranch == 'master'
+}
+
 def String isBumpCommit = lastCommitIsBumpCommit()
-
-def getSourceUrl() {
-    return scm.userRemoteConfigs[0].url
-}
-
 def String sourceUrl = scm.userRemoteConfigs[0].url
-
-def getSourceBranch() {
-    return BRANCH_NAME
-}
-
 def String sourceBranch = BRANCH_NAME
-
-
-//def isRefBuild(branch) {
-//
-//}
-//
-//def isOpsBuild(branch) {
-//
-//}
-
+def String cloneType = 'ssh'
 def String docker_tag_version = ''
-
 
 def call(Map pipelineParams) {
     pipeline {
@@ -51,19 +39,15 @@ def call(Map pipelineParams) {
                     dir('project') {
 
                         git(
-                            branch: getSourceBranch(),
-                            url: getSourceUrl(),
-                            credentialsId: 'ssh'
+                            branch: sourceBranch,
+                            url: sourceUrl,
+                            credentialsId: cloneType
                         )
-
-                        script {
-                            isBumpCommit = lastCommitIsBumpCommit()
-                        }
                     }
 
                     dir('deployment') {
                         git(
-                            branch: getSourceBranch(),
+                            branch: sourceBranch,
                             url: "${pipelineParams.deploymentRepo}",
                             credentialsId: 'ssh'
                         )
@@ -93,7 +77,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop' && !isBumpCommit
+                        !isOpsBuild() && !isRefBuild() && !isBumpCommit
                     }
                 }
 
@@ -106,7 +90,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop' && !isBumpCommit
+                        pipelineParams.buildType == 'maven' && isRefBuild() && !isBumpCommit
                     }
                 }
 
@@ -124,7 +108,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'develop'
+                        isOpsBuild() || isRefBuild()
                     }
                 }
 
@@ -134,8 +118,8 @@ def call(Map pipelineParams) {
 
                         script {
                             docker_tag_version = sh(
-                                    script: 'mvn -f ../project/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                    returnStdout: true
+                                script: 'mvn -f ../project/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                returnStdout: true
                             ).trim()
                         }
 
@@ -163,7 +147,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'develop' && !isBumpCommit
+                        isRefBuild() && !isBumpCommit
                     }
                 }
 
@@ -182,7 +166,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'develop' && !isBumpCommit
+                        isRefBuild() && !isBumpCommit
                     }
                 }
 
@@ -201,7 +185,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        !isBumpCommit
+                        isRefBuild() && !isBumpCommit
                     }
                 }
 
@@ -215,6 +199,12 @@ def call(Map pipelineParams) {
             }
 
             stage('Push deployment update') {
+
+                when {
+                    expression {
+                        !isBumpCommit
+                    }
+                }
 
                 steps {
                     dir('deployment') {
@@ -232,7 +222,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'develop'
+                        isRefBuild()
                     }
                 }
 
@@ -258,7 +248,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'master'
+                        isOpsBuild()
                     }
                 }
 
