@@ -43,8 +43,6 @@ def call(Map pipelineParams) {
                         echo "SOURCE_BRANCH: ${SOURCE_BRANCH}"
                         echo "SOURCE_URL: ${SOURCE_URL}"
                         echo "SOURCE_CLONE_TYPE: ${SOURCE_CLONE_TYPE}"
-                        echo "IS_REF_BUILD: ${IS_REF_BUILD}"
-                        echo "IS_OPS_BUILD: ${IS_OPS_BUILD}"
                         echo "IS_BUMP_COMMIT: ${IS_BUMP_COMMIT}"
                     }
                     dir('project') {
