@@ -8,6 +8,14 @@ def lastCommitIsBumpCommit() {
     }
 }
 
+def isRefBuild() {
+    return BRANCH_NAME == 'develop'
+}
+
+def isOpsBuild() {
+    return BRANCH_NAME == 'master'
+}
+
 def call(Map pipelineParams) {
     pipeline {
         agent any
@@ -16,8 +24,8 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             SOURCE_CLONE_TYPE = 'ssh'
-            IS_REF_BUILD = $(BRANCH_NAME == 'develop')
-            IS_OPS_BUILD = $(BRANCH_NAME == 'master')
+            IS_REF_BUILD = isRefBuild()
+            IS_OPS_BUILD = isOpsBuild()
             IS_BUMP_COMMIT = lastCommitIsBumpCommit()
             DOCKER_TAG_VERSION = ''
         }
