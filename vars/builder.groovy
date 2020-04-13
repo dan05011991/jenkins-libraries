@@ -16,15 +16,13 @@ def isOpsBuild() {
     return sourceBranch == 'master'
 }
 
+def String isBumpCommit = lastCommitIsBumpCommit()
+def String sourceUrl = scm.userRemoteConfigs[0].url
+def String sourceBranch = BRANCH_NAME
+def String cloneType = 'ssh'
+def String docker_tag_version = ''
 
 def call(Map pipelineParams) {
-    def String isBumpCommit = lastCommitIsBumpCommit()
-    def String sourceUrl = scm.userRemoteConfigs[0].url
-    def String sourceBranch = BRANCH_NAME
-    def String cloneType = 'ssh'
-    def String docker_tag_version = ''
-
-    
     pipeline {
         agent any
 
