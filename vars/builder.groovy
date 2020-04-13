@@ -30,6 +30,7 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             SOURCE_CLONE_TYPE = 'ssh'
+            IS_BUMP_COMMIT = lastCommitIsBumpCommit()
         }
 
         options {
@@ -83,7 +84,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        !isOpsBuild() && !isRefBuild() && !isBumpCommit
+                        !isOpsBuild() && !isRefBuild() && !IS_BUMP_COMMIT
                     }
                 }
 
@@ -96,7 +97,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        pipelineParams.buildType == 'maven' && isRefBuild() && !isBumpCommit
+                        pipelineParams.buildType == 'maven' && isRefBuild() && !IS_BUMP_COMMIT
                     }
                 }
 
@@ -153,7 +154,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        isRefBuild() && !isBumpCommit
+                        isRefBuild() && !IS_BUMP_COMMIT
                     }
                 }
 
@@ -172,7 +173,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        isRefBuild() && !isBumpCommit
+                        isRefBuild() && !IS_BUMP_COMMIT
                     }
                 }
 
@@ -191,7 +192,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        isRefBuild() && !isBumpCommit
+                        isRefBuild() && !IS_BUMP_COMMIT
                     }
                 }
 
@@ -208,7 +209,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        !isBumpCommit
+                        !IS_BUMP_COMMIT
                     }
                 }
 
