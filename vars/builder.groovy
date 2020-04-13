@@ -8,8 +8,12 @@ def lastCommitIsBumpCommit() {
     }
 }
 
-def getSourceBranch() {
+def getSourceUrl() {
     return scm.userRemoteConfigs[0].url
+}
+
+def getSourceBranch() {
+    return BRANCH_NAME
 }
 
 
@@ -45,8 +49,8 @@ def call(Map pipelineParams) {
                         }
 
                         git(
-                            branch: "${env.GIT_BRANCH}",
-                            url: "${env.GIT_URL}",
+                            branch: getSourceBranch(),
+                            url: getSourceUrl(),
                             credentialsId: 'ssh'
                         )
 
