@@ -16,6 +16,10 @@ def call(Map pipelineParams) {
             disableConcurrentBuilds()
         }
 
+        parameters {
+            string(name: 'docker_tag_version', defaultValue: '')
+        }
+
         stages {
 
             stage('Is Bump Commit?') {
@@ -136,17 +140,27 @@ def call(Map pipelineParams) {
                     dir('project') {
 
                         script {
-                            def tag = sh(
-                                    script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                    returnStdout: true
+                            env.docker_tag_version = sh(
+                                script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                returnStdout: true
                             ).trim()
 
-                            withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                                sh "docker build . -t ${pipelineParams.imageName}${tag}"
-                                sh "docker push ${pipelineParams.imageName}${tag}"
-                            }
+                            sh "docker build . -t ${pipelineParams.imageName}${env.docker_tag_version}"
                         }
+                    }
+                }
+            }
 
+            stage('Commit changes') {
+                steps {
+
+                    script {
+                        withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                            sh "docker push ${pipelineParams.imageName}${env.docker_tag_version}"
+                        }
+                    }
+
+                    dir('project') {
                         sshagent(credentials: ['ssh']) {
                             sh "git push origin ${env.GIT_BRANCH}"
                         }
