@@ -27,7 +27,7 @@ def call(Map pipelineParams) {
         agent any
 
         environment {
-            SOURCE_BRANCH = BRANCH_NAME
+            SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             SOURCE_CLONE_TYPE = 'ssh'
         }
