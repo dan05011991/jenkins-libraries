@@ -8,20 +8,6 @@ def lastCommitIsBumpCommit() {
     }
 }
 
-def isRefBuild() {
-    return sourceBranch == 'develop'
-}
-
-def isOpsBuild() {
-    return sourceBranch == 'master'
-}
-
-def String isBumpCommit = lastCommitIsBumpCommit()
-def String sourceUrl = scm.userRemoteConfigs[0].url
-def String sourceBranch = BRANCH_NAME
-def String cloneType = 'ssh'
-def String docker_tag_version = ''
-
 def call(Map pipelineParams) {
     pipeline {
         agent any
@@ -30,7 +16,10 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             SOURCE_CLONE_TYPE = 'ssh'
+            IS_REF_BUILD = sourceBranch == 'develop'
+            IS_OPS_BUILD = sourceBranch == 'master'
             IS_BUMP_COMMIT = lastCommitIsBumpCommit()
+            DOCKER_TAG_VERSION = ''
         }
 
         options {
@@ -43,6 +32,15 @@ def call(Map pipelineParams) {
             stage('Checkout') {
 
                 steps {
+                    script {
+                        echo "Variables:"
+                        echo "SOURCE_BRANCH: ${SOURCE_BRANCH}"
+                        echo "SOURCE_URL: ${SOURCE_URL}"
+                        echo "SOURCE_CLONE_TYPE: ${SOURCE_CLONE_TYPE}"
+                        echo "IS_REF_BUILD: ${IS_REF_BUILD}"
+                        echo "IS_OPS_BUILD: ${IS_OPS_BUILD}"
+                        echo "IS_BUMP_COMMIT: ${IS_BUMP_COMMIT}"
+                    }
                     dir('project') {
 
                         git(
@@ -124,7 +122,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         script {
-                            docker_tag_version = sh(
+                            DOCKER_TAG_VERSION = sh(
                                 script: 'mvn -f ../project/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
                                 returnStdout: true
                             ).trim()
@@ -135,7 +133,7 @@ def call(Map pipelineParams) {
                                 IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
                                 COMPOSE_FILE=docker-compose.yaml
                                 PROJECT_DIR=../project
-                                SNAPSHOT=${docker_tag_version}
+                                SNAPSHOT=${DOCKER_TAG_VERSION}
                         
                                 sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
                                 
@@ -163,7 +161,7 @@ def call(Map pipelineParams) {
                     dir('project') {
 
                         script {
-                            sh "docker build . -t ${pipelineParams.imageName}${docker_tag_version}"
+                            sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                         }
                     }
                 }
@@ -181,7 +179,7 @@ def call(Map pipelineParams) {
                     dir('project') {
                         script {
                             withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                                sh "docker push ${pipelineParams.imageName}${docker_tag_version}"
+                                sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                             }
                         }
                     }
