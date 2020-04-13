@@ -38,13 +38,6 @@ def call(Map pipelineParams) {
 
             stage('Checkout') {
 
-                when {
-                    expression {
-                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
-                    }
-                }
-
-
                 steps {
                     dir('project') {
 
