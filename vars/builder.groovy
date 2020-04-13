@@ -24,8 +24,6 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             SOURCE_CLONE_TYPE = 'ssh'
-            IS_REF_BUILD = isRefBuild()
-            IS_OPS_BUILD = isOpsBuild()
             IS_BUMP_COMMIT = lastCommitIsBumpCommit()
             DOCKER_TAG_VERSION = ''
         }
