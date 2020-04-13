@@ -8,7 +8,7 @@ def lastCommitIsBumpCommit() {
     }
 }
 
-def String docker_tag_version
+def docker_tag_version11111 = ''
 
 
 def call(Map pipelineParams) {
