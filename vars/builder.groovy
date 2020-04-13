@@ -118,8 +118,9 @@ def call(Map pipelineParams) {
                                 IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
                                 COMPOSE_FILE=docker-compose.yaml
                                 PROJECT_DIR=../project
+                                SNAPSHOT=${env.docker_tag_version}
                         
-                                sed -i -E "s/\$IMAGE.+/\$IMAGE${env.docker_tag_version}/" \$COMPOSE_FILE
+                                sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
                                 
                                 if [ \$(git diff | wc -l) -gt 0 ]; then
                                     git add docker-compose.yaml
