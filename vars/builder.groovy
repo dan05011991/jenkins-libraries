@@ -121,7 +121,7 @@ def call(Map pipelineParams) {
                                 
                                 if [ \$(git diff | wc -l) -gt 0 ]; then
                                     git add docker-compose.yaml
-                                    git commit -m "New release"
+                                    git commit -m "[Automated commit: version bump]"
                                 fi
 
                             """
