@@ -108,7 +108,7 @@ def call(Map pipelineParams) {
 
                         script {
                             env.docker_tag_version = sh(
-                                    script: 'mvn -f pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                    script: 'mvn -f ../project/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
                                     returnStdout: true
                             ).trim()
                         }
