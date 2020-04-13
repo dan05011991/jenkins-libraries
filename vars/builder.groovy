@@ -26,6 +26,12 @@ def call(Map pipelineParams) {
     pipeline {
         agent any
 
+        environment {
+            SOURCE_BRANCH = BRANCH_NAME
+            SOURCE_URL = scm.userRemoteConfigs[0].url,
+            SOURCE_CLONE_TYPE = 'ssh'
+        }
+
         options {
             disableConcurrentBuilds()
             skipDefaultCheckout()
@@ -39,17 +45,17 @@ def call(Map pipelineParams) {
                     dir('project') {
 
                         git(
-                            branch: "${sourceBranch}",
-                            url: "${sourceUrl}",
-                            credentialsId: cloneType
+                            branch: "${env.SOURCE_BRANCH}",
+                            url: "${env.SOURCE_URL}",
+                            credentialsId: "${env.SOURCE_CLONE_TYPE}"
                         )
                     }
 
                     dir('deployment') {
                         git(
-                            branch: "${sourceBranch}",
+                            branch: "${env.SOURCE_BRANCH}",
                             url: "${pipelineParams.deploymentRepo}",
-                            credentialsId: 'ssh'
+                            credentialsId: "${env.SOURCE_CLONE_TYPE}"
                         )
                     }
                 }
