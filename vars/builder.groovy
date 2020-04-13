@@ -160,8 +160,6 @@ def call(Map pipelineParams) {
                                     returnStdout: true
                             ).trim()
 
-                            sh "eighue"
-
                             withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
                                 sh "docker build . -t ${pipelineParams.imageName}${tag}"
                                 sh "docker push ${pipelineParams.imageName}${tag}"
