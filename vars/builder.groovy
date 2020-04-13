@@ -98,14 +98,6 @@ def call(Map pipelineParams) {
 
                 steps {
 
-                    dir('project') {
-
-                        git(
-                            branch: "${env.GIT_BRANCH}",
-                            url: "${env.GIT_URL}",
-                            credentialsId: 'ssh'
-                        )
-                    }
 
                     dir('deployment') {
 
@@ -147,12 +139,6 @@ def call(Map pipelineParams) {
                 steps {
 
                     dir('project') {
-
-                        git(
-                            branch: "${env.GIT_BRANCH}",
-                            url: "${env.GIT_URL}",
-                            credentialsId: 'ssh'
-                        )
 
                         script {
                             def tag = sh(
