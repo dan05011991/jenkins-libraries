@@ -8,7 +8,10 @@ def lastCommitIsBumpCommit() {
     }
 }
 
-def SOURCE = scm.userRemoteConfigs[0].url
+def getSourceBranch() {
+    return scm.userRemoteConfigs[0].url
+}
+
 
 //def isRefBuild(branch) {
 //
@@ -38,7 +41,7 @@ def call(Map pipelineParams) {
                 steps {
                     dir('project') {
                         script {
-                            echo "${SOURCE}"
+                            echo getSourceBranch()
                         }
 
                         git(
