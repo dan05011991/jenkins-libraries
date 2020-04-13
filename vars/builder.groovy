@@ -42,7 +42,9 @@ def call(Map pipelineParams) {
                             credentialsId: 'ssh'
                         )
 
-                        isBumpCommit = lastCommitIsBumpCommit()
+                        script {
+                            isBumpCommit = lastCommitIsBumpCommit()
+                        }
                     }
 
                     dir('deployment') {
