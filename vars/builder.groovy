@@ -8,13 +8,19 @@ def lastCommitIsBumpCommit() {
     }
 }
 
+def String isBumpCommit = lastCommitIsBumpCommit()
+
 def getSourceUrl() {
     return scm.userRemoteConfigs[0].url
 }
 
+def String sourceUrl = scm.userRemoteConfigs[0].url
+
 def getSourceBranch() {
     return BRANCH_NAME
 }
+
+def String sourceBranch = BRANCH_NAME
 
 
 //def isRefBuild(branch) {
@@ -26,7 +32,6 @@ def getSourceBranch() {
 //}
 
 def String docker_tag_version = ''
-def Boolean isBumpCommit = false
 
 
 def call(Map pipelineParams) {
@@ -44,9 +49,6 @@ def call(Map pipelineParams) {
 
                 steps {
                     dir('project') {
-                        script {
-                            echo getSourceBranch()
-                        }
 
                         git(
                             branch: getSourceBranch(),
@@ -61,7 +63,7 @@ def call(Map pipelineParams) {
 
                     dir('deployment') {
                         git(
-                            branch: "${env.GIT_BRANCH}",
+                            branch: getSourceBranch(),
                             url: "${pipelineParams.deploymentRepo}",
                             credentialsId: 'ssh'
                         )
