@@ -84,10 +84,6 @@ def call(Map pipelineParams) {
                         sh 'mvn release:update-versions -B'
                         sh 'git add pom.xml'
                         sh 'git commit -m \'[Automated commit: version bump]\''
-
-                        sshagent(credentials: ['ssh']) {
-                            sh("git push origin ${env.GIT_BRANCH}")
-                        }
                     }
                 }
             }
@@ -133,6 +129,7 @@ def call(Map pipelineParams) {
                                     git add docker-compose.yaml
                                     git commit -m "New release"
                                 fi
+
                             """
                         }
                     }
@@ -167,10 +164,16 @@ def call(Map pipelineParams) {
                                 sh "docker build . -t ${pipelineParams.imageName}${tag}"
                                 sh "docker push ${pipelineParams.imageName}${tag}"
                             }
+                        }
 
-                            sshagent(credentials: ['ssh']) {
-                                sh "git push origin ${env.GIT_BRANCH}"
-                            }
+                        sshagent(credentials: ['ssh']) {
+                            sh "git push origin ${env.GIT_BRANCH}"
+                        }
+                    }
+
+                    dir('deployment') {
+                        sshagent(credentials: ['ssh']) {
+                            sh "git push origin ${env.GIT_BRANCH}"
                         }
                     }
                 }
