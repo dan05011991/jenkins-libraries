@@ -23,7 +23,6 @@ def call(Map pipelineParams) {
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
-            SOURCE_CLONE_TYPE = 'ssh'
             IS_BUMP_COMMIT = lastCommitIsBumpCommit()
             DOCKER_TAG_VERSION = ''
         }
@@ -38,19 +37,20 @@ def call(Map pipelineParams) {
             stage('Checkout') {
 
                 steps {
+
                     script {
                         echo "Variables:"
                         echo "SOURCE_BRANCH: ${SOURCE_BRANCH}"
                         echo "SOURCE_URL: ${SOURCE_URL}"
-                        echo "SOURCE_CLONE_TYPE: ${SOURCE_CLONE_TYPE}"
                         echo "IS_BUMP_COMMIT: ${IS_BUMP_COMMIT}"
                     }
+
                     dir('project') {
 
                         git(
                             branch: "${env.SOURCE_BRANCH}",
                             url: "${env.SOURCE_URL}",
-                            credentialsId: "${env.SOURCE_CLONE_TYPE}"
+                            credentialsId: 'ssh'
                         )
                     }
 
@@ -58,7 +58,7 @@ def call(Map pipelineParams) {
                         git(
                             branch: "${env.SOURCE_BRANCH}",
                             url: "${pipelineParams.deploymentRepo}",
-                            credentialsId: "${env.SOURCE_CLONE_TYPE}"
+                            credentialsId:'ssh'
                         )
                     }
                 }
@@ -201,7 +201,7 @@ def call(Map pipelineParams) {
                 steps {
                     dir('project') {
                         sshagent(credentials: ['ssh']) {
-                            sh "git push origin ${env.GIT_BRANCH}"
+                            sh "git push origin ${SOURCE_BRANCH}"
                         }
                     }
                 }
@@ -218,7 +218,7 @@ def call(Map pipelineParams) {
                 steps {
                     dir('deployment') {
                         sshagent(credentials: ['ssh']) {
-                            sh "git push origin ${env.GIT_BRANCH}"
+                            sh "git push origin ${SOURCE_BRANCH}"
                         }
                     }
                 }
@@ -239,7 +239,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         git(
-                                branch: "${env.GIT_BRANCH}",
+                                branch: "${SOURCE_BRANCH}",
                                 url: "${pipelineParams.deploymentRepo}",
                                 credentialsId: 'ssh'
                         )
@@ -265,7 +265,7 @@ def call(Map pipelineParams) {
                     dir('deployment') {
 
                         git(
-                                branch: "${env.GIT_BRANCH}",
+                                branch: "${SOURCE_BRANCH}",
                                 url: "${pipelineParams.deploymentRepo}",
                                 credentialsId: 'ssh'
                         )
