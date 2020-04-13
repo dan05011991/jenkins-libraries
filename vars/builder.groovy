@@ -39,15 +39,15 @@ def call(Map pipelineParams) {
                     dir('project') {
 
                         git(
-                            branch: sourceBranch,
-                            url: sourceUrl,
+                            branch: $sourceBranch,
+                            url: $sourceUrl,
                             credentialsId: cloneType
                         )
                     }
 
                     dir('deployment') {
                         git(
-                            branch: sourceBranch,
+                            branch: $sourceBranch,
                             url: "${pipelineParams.deploymentRepo}",
                             credentialsId: 'ssh'
                         )
