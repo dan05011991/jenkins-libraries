@@ -23,7 +23,7 @@ def call(Map pipelineParams) {
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
-            IS_BUMP_COMMIT = lastCommitIsBumpCommit()
+            IS_BUMP_COMMIT = true
             DOCKER_TAG_VERSION = ''
         }
 
@@ -38,13 +38,6 @@ def call(Map pipelineParams) {
 
                 steps {
 
-                    script {
-                        echo "Variables:"
-                        echo "SOURCE_BRANCH: ${SOURCE_BRANCH}"
-                        echo "SOURCE_URL: ${SOURCE_URL}"
-                        echo "IS_BUMP_COMMIT: ${IS_BUMP_COMMIT}"
-                    }
-
                     dir('project') {
 
                         git(
@@ -52,6 +45,8 @@ def call(Map pipelineParams) {
                             url: "${env.SOURCE_URL}",
                             credentialsId: 'ssh'
                         )
+
+                        IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                     }
 
                     dir('deployment') {
@@ -60,6 +55,13 @@ def call(Map pipelineParams) {
                             url: "${pipelineParams.deploymentRepo}",
                             credentialsId:'ssh'
                         )
+                    }
+
+                    script {
+                        echo "Variables:"
+                        echo "SOURCE_BRANCH: ${SOURCE_BRANCH}"
+                        echo "SOURCE_URL: ${SOURCE_URL}"
+                        echo "IS_BUMP_COMMIT: ${IS_BUMP_COMMIT}"
                     }
                 }
             }
