@@ -8,6 +8,9 @@ def lastCommitIsBumpCommit() {
     }
 }
 
+def String docker_tag_version
+
+
 def call(Map pipelineParams) {
     pipeline {
         agent any
@@ -16,29 +19,7 @@ def call(Map pipelineParams) {
             disableConcurrentBuilds()
         }
 
-        parameters {
-            string(name: 'docker_tag_version', defaultValue: '')
-        }
-
         stages {
-
-            stage('Is Bump Commit?') {
-
-                when {
-                    expression {
-                        lastCommitIsBumpCommit()
-                    }
-                }
-
-
-                steps {
-                    echo "This is a bump commit build - exiting early"
-
-                    script {
-                        currentBuild.result = currentBuild.getPreviousBuild().result
-                    }
-                }
-            }
 
             stage('Checkout') {
 
@@ -58,6 +39,24 @@ def call(Map pipelineParams) {
                             url: "${pipelineParams.deploymentRepo}",
                             credentialsId: 'ssh'
                         )
+                    }
+                }
+            }
+
+            stage('Is Bump Commit?') {
+
+                when {
+                    expression {
+                        lastCommitIsBumpCommit()
+                    }
+                }
+
+
+                steps {
+                    echo "This is a bump commit build - exiting early"
+
+                    script {
+                        currentBuild.result = currentBuild.getPreviousBuild().result
                     }
                 }
             }
@@ -102,7 +101,7 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    
+
                     dir('deployment') {
 
                         script {
@@ -146,7 +145,22 @@ def call(Map pipelineParams) {
 
                         script {
                             sh "docker build . -t ${pipelineParams.imageName}${env.docker_tag_version}"
+                        }
+                    }
+                }
+            }
 
+            stage('Push docker update') {
+
+                when {
+                    expression {
+                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                    }
+                }
+
+                steps {
+                    dir('project') {
+                        script {
                             withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
                                 sh "docker push ${pipelineParams.imageName}${env.docker_tag_version}"
                             }
@@ -155,14 +169,26 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Commit changes') {
+            stage('Push project update') {
+
+                when {
+                    expression {
+                        !lastCommitIsBumpCommit()
+                    }
+                }
+
                 steps {
                     dir('project') {
                         sshagent(credentials: ['ssh']) {
                             sh "git push origin ${env.GIT_BRANCH}"
                         }
                     }
+                }
+            }
 
+            stage('Push deployment update') {
+
+                steps {
                     dir('deployment') {
                         sshagent(credentials: ['ssh']) {
                             sh "git push origin ${env.GIT_BRANCH}"
