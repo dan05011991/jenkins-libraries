@@ -93,7 +93,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                        env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'develop'
                     }
                 }
 
