@@ -8,7 +8,16 @@ def lastCommitIsBumpCommit() {
     }
 }
 
+//def isRefBuild(branch) {
+//
+//}
+//
+//def isOpsBuild(branch) {
+//
+//}
+
 def String docker_tag_version = ''
+def Boolean isBumpCommit = false
 
 
 def call(Map pipelineParams) {
@@ -17,6 +26,7 @@ def call(Map pipelineParams) {
 
         options {
             disableConcurrentBuilds()
+            skipDefaultCheckout()
         }
 
         stages {
@@ -31,6 +41,8 @@ def call(Map pipelineParams) {
                             url: "${env.GIT_URL}",
                             credentialsId: 'ssh'
                         )
+
+                        isBumpCommit = lastCommitIsBumpCommit()
                     }
 
                     dir('deployment') {
@@ -47,7 +59,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        lastCommitIsBumpCommit()
+                        isBumpCommit
                     }
                 }
 
@@ -65,7 +77,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop' && !lastCommitIsBumpCommit()
+                        env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'develop' && !isBumpCommit
                     }
                 }
 
@@ -78,7 +90,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                        pipelineParams.buildType == 'maven' && env.GIT_BRANCH == 'develop' && !isBumpCommit
                     }
                 }
 
@@ -135,7 +147,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                        env.GIT_BRANCH == 'develop' && !isBumpCommit
                     }
                 }
 
@@ -154,7 +166,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                        env.GIT_BRANCH == 'develop' && !isBumpCommit
                     }
                 }
 
@@ -173,7 +185,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        !lastCommitIsBumpCommit()
+                        !isBumpCommit
                     }
                 }
 
