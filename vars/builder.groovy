@@ -179,7 +179,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'develop' && !lastCommitIsBumpCommit()
+                        env.GIT_BRANCH == 'develop'
                     }
                 }
 
@@ -205,7 +205,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        env.GIT_BRANCH == 'master' && !lastCommitIsBumpCommit()
+                        env.GIT_BRANCH == 'master'
                     }
                 }
 
