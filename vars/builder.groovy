@@ -24,7 +24,8 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = true
-            DOCKER_TAG_VERSION = ''
+            DOCKER_TAG_VERSION = '',
+            UNIQUE_ID = UUID.randomUUID().toString()
         }
 
         options {
@@ -104,9 +105,26 @@ def call(Map pipelineParams) {
                     }
                 }
 
-                steps {
-                    dir('project') {
-                        sh "docker build -f ${pipelineParams.testDockerFile} ."
+                parallel {
+                    stage('Maven Test') {
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'maven'
+                            }
+                        }
+
+                        steps {
+                            dir('project') {
+                                sh "mvn surefire-report:report"
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            dir('project') {
+                                junit 'target/reports/**/*.xml'
+                            }
+                        }
                     }
                 }
             }
