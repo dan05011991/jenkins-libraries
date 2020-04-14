@@ -228,53 +228,57 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Deploy to Ref') {
-                agent {
-                    label 'ref'
-                }
+            stage('Deploy') {
+                parallel {
+                    stage('Deploy to Ref') {
+                        agent {
+                            label 'ref'
+                        }
 
-                when {
-                    expression {
-                        isRefBuild()
+                        when {
+                            expression {
+                                isRefBuild()
+                            }
+                        }
+
+                        steps {
+                            dir('deployment') {
+
+                                git(
+                                        branch: "${SOURCE_BRANCH}",
+                                        url: "${pipelineParams.deploymentRepo}",
+                                        credentialsId: 'ssh'
+                                )
+
+                                sh 'docker-compose -f docker-compose.yaml up -d'
+                            }
+                        }
                     }
-                }
-
-                steps {
-                    dir('deployment') {
-
-                        git(
-                                branch: "${SOURCE_BRANCH}",
-                                url: "${pipelineParams.deploymentRepo}",
-                                credentialsId: 'ssh'
-                        )
-
-                        sh 'docker-compose -f docker-compose.yaml up -d'
-                    }
-                }
-            }
 
 
-            stage('Deploy to Ops') {
-                agent {
-                    label 'ops'
-                }
+                    stage('Deploy to Ops') {
+                        agent {
+                            label 'ops'
+                        }
 
-                when {
-                    expression {
-                        isOpsBuild()
-                    }
-                }
+                        when {
+                            expression {
+                                isOpsBuild()
+                            }
+                        }
 
-                steps {
-                    dir('deployment') {
+                        steps {
+                            dir('deployment') {
 
-                        git(
-                                branch: "${SOURCE_BRANCH}",
-                                url: "${pipelineParams.deploymentRepo}",
-                                credentialsId: 'ssh'
-                        )
+                                git(
+                                        branch: "${SOURCE_BRANCH}",
+                                        url: "${pipelineParams.deploymentRepo}",
+                                        credentialsId: 'ssh'
+                                )
 
-                        sh 'docker-compose -f docker-compose.yaml up -d'
+                                sh 'docker-compose -f docker-compose.yaml up -d'
+                            }
+                        }
                     }
                 }
             }
