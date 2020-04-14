@@ -36,34 +36,37 @@ def call(Map pipelineParams) {
 
             stage('Checkout') {
 
-                steps {
+                parallel {
 
-                    dir('project') {
+                    stage('Checkout Project') {
+                        steps {
 
-                        git(
-                            branch: "${env.SOURCE_BRANCH}",
-                            url: "${env.SOURCE_URL}",
-                            credentialsId: 'ssh'
-                        )
+                            dir('project') {
 
-                        script {
-                            IS_BUMP_COMMIT = lastCommitIsBumpCommit()
+                                git(
+                                        branch: "${env.SOURCE_BRANCH}",
+                                        url: "${env.SOURCE_URL}",
+                                        credentialsId: 'ssh'
+                                )
+
+                                script {
+                                    IS_BUMP_COMMIT = lastCommitIsBumpCommit()
+                                }
+                            }
                         }
                     }
 
-                    dir('deployment') {
-                        git(
-                            branch: "${env.SOURCE_BRANCH}",
-                            url: "${pipelineParams.deploymentRepo}",
-                            credentialsId:'ssh'
-                        )
-                    }
+                    stage('Checkout Deployment') {
+                        steps {
 
-                    script {
-                        echo "Variables:"
-                        echo "SOURCE_BRANCH: ${SOURCE_BRANCH}"
-                        echo "SOURCE_URL: ${SOURCE_URL}"
-                        echo "IS_BUMP_COMMIT: ${IS_BUMP_COMMIT}"
+                            dir('deployment') {
+                                git(
+                                        branch: "${env.SOURCE_BRANCH}",
+                                        url: "${pipelineParams.deploymentRepo}",
+                                        credentialsId: 'ssh'
+                                )
+                            }
+                        }
                     }
                 }
             }
