@@ -24,8 +24,7 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = true
-            DOCKER_TAG_VERSION = '',
-            UNIQUE_ID = UUID.randomUUID().toString()
+            DOCKER_TAG_VERSION = ''
         }
 
         options {
@@ -128,6 +127,7 @@ def call(Map pipelineParams) {
                     }
                 }
             }
+
 
             stage('Maven version update') {
 
