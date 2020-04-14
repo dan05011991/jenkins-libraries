@@ -105,7 +105,9 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh "docker build -f ${pipelineParams.testDockerFile} ."
+                    dir('project') {
+                        sh "docker build -f ${pipelineParams.testDockerFile} ."
+                    }
                 }
             }
 
