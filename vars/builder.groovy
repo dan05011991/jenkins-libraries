@@ -175,7 +175,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Push docker image') {
+            stage('Push Project Updates') {
 
                 when {
                     expression {
@@ -183,29 +183,28 @@ def call(Map pipelineParams) {
                     }
                 }
 
-                steps {
-                    dir('project') {
-                        script {
-                            withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                                sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                parallel {
+                    stage('Push docker image') {
+
+                        steps {
+                            dir('project') {
+                                script {
+                                    withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
+                                        sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
 
-            stage('Push pom update') {
+                    stage('Push pom update') {
 
-                when {
-                    expression {
-                        isRefBuild() && !IS_BUMP_COMMIT
-                    }
-                }
-
-                steps {
-                    dir('project') {
-                        sshagent(credentials: ['ssh']) {
-                            sh "git push origin ${SOURCE_BRANCH}"
+                        steps {
+                            dir('project') {
+                                sshagent(credentials: ['ssh']) {
+                                    sh "git push origin ${SOURCE_BRANCH}"
+                                }
+                            }
                         }
                     }
                 }
