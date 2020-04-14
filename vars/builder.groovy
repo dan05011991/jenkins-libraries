@@ -57,6 +57,13 @@ def call(Map pipelineParams) {
                     }
 
                     stage('Checkout Deployment') {
+
+                        when {
+                            expression {
+                                !isOpsBuild() && !isRefBuild()
+                            }
+                        }
+
                         steps {
 
                             dir('deployment') {
@@ -98,7 +105,7 @@ def call(Map pipelineParams) {
                 }
 
                 steps {
-                    sh 'mvn -B -DskipTests clean package'
+                    sh "docker build -f ${pipelineParams.testDockerFile}"
                 }
             }
 
