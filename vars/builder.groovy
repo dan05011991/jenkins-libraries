@@ -117,11 +117,11 @@ def call(Map pipelineParams) {
                                 sh "mvn surefire-report:report"
                             }
                         }
-                        
+
                         post {
                             always {
                                 dir('project') {
-                                    junit 'target/reports/**/*.xml'
+                                    junit 'target/surefire-reports/**/*.xml'
                                 }
                             }
                         }
