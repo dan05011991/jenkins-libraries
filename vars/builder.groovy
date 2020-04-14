@@ -105,25 +105,24 @@ def call(Map pipelineParams) {
                 }
 
                 parallel {
-                    stages('Test') {
-                        stage('Maven Test') {
-                            when {
-                                expression {
-                                    pipelineParams.buildType == 'maven'
-                                }
-                            }
-
-                            steps {
-                                dir('project') {
-                                    sh "mvn surefire-report:report"
-                                }
+                    stage('Maven Test') {
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'maven'
                             }
                         }
-                    }
-                    post {
-                        always {
+
+                        steps {
                             dir('project') {
-                                junit 'target/reports/**/*.xml'
+                                sh "mvn surefire-report:report"
+                            }
+                        }
+                        
+                        post {
+                            always {
+                                dir('project') {
+                                    junit 'target/reports/**/*.xml'
+                                }
                             }
                         }
                     }
