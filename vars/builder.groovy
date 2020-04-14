@@ -121,7 +121,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        isOpsBuild() || isRefBuild() && !IS_BUMP_COMMIT
+                        (isOpsBuild() || isRefBuild()) && !IS_BUMP_COMMIT
                     }
                 }
 
