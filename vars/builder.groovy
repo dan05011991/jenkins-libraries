@@ -149,14 +149,13 @@ def call(Map pipelineParams) {
                         }
 
                         agent {
-                            docker {
-                                image MAVEN_IMAGE
-                                args "--name ${unique_Id}"
+                            dockerfile {
+                                filename "project/test.dockerfile"
                             }
                         }
 
                         steps {
-                            sh "mvn -f pom.xml surefire-report:report"
+                            sh "mvn surefire-report:report"
                         }
 
                         post {
