@@ -129,7 +129,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Version update') {
+            stage('Update project version') {
 
                 when {
                     expression {
@@ -152,7 +152,7 @@ def call(Map pipelineParams) {
                             dir('project') {
                                 sh 'mvn release:update-versions -B'
                                 sh 'git add pom.xml'
-                                sh 'git commit -m \'[Automated commit: version bump]\''
+                                sh 'git commit -m "[Automated commit: version bump]"'
                             }
 
                         }
@@ -192,7 +192,8 @@ def call(Map pipelineParams) {
                                         sed -i "s/appVersion: '${UI_VERSION}'/appVersion: '${DOCKER_TAG_VERSION}'/g" conf/config-release.js
                                     """)
 
-
+                                    sh 'git add conf/config-release.js'
+                                    sh 'git commit -m "[Automated commit: version bump]"'
                                 }
                             }
                         }
@@ -246,7 +247,7 @@ def call(Map pipelineParams) {
 
                                 dir('project') {
                                     DOCKER_TAG_VERSION = sh(
-                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
                                             returnStdout: true
                                     )
                                 }
