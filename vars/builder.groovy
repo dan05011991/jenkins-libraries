@@ -172,38 +172,18 @@ def call(Map pipelineParams) {
 
                                 dir('project') {
 
+                                    scriptName = 'increment_version.sh'
+                                    def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
+                                    writeFile file: "${scriptName}", text: scriptContent
+                                    sh "chmod +x ${scriptName}"
+
                                     UI_VERSION = sh(
                                             script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
                                             returnStdout: true
                                     )
 
                                     DOCKER_TAG_VERSION = sh(
-
-                                            script: """
-
-                                                increment_version ()
-                                                {
-                                                    declare -a part=( \${1//\\./ } )
-                                                    declare    new
-                                                    declare -i carry=1
-    
-                                                    for (( CNTR=\${#part[@]}-1; CNTR>=0; CNTR-=1 )); do
-                                                        len=\${#part[CNTR]}
-                                                        new=\$((part[CNTR]+carry))
-                                                        [ \${#new} -gt \$len ] && carry=1 || carry=0
-                                                        [ \$CNTR -gt 0 ] && part[CNTR]=\${new: -len} || part[CNTR]=\${new}
-                                                    done
-
-                                                    new="\${part[*]}"
-                                                    echo -e "\${new// /.}"
-                                                } 
-    
-                                                version='1.2.3.44'
-        
-                                                increment_version \$version
-        
-                                            """,
-
+                                            script: "increment_version.sh ${UI_VERSION}",
                                             returnStdout: true
                                     ).trim()
 
