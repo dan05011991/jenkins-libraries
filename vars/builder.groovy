@@ -155,7 +155,9 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            sh "mvn surefire-report:report"
+                            dir('/usr/webapp') {
+                                sh "mvn surefire-report:report"
+                            }
                         }
 
                         post {
