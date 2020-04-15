@@ -147,12 +147,12 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            dir('/usr/src/app') {
+                      
                                 echo 'here'
                                 sh "ls"
 
-                                sh "mvn surefire-report:report"
-                            }
+                                sh "cd /usr/src/app && mvn surefire-report:report"
+
                         }
 
                         post {
