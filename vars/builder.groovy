@@ -136,7 +136,7 @@ def call(Map pipelineParams) {
                         agent {
                             docker {
                                 image MAVEN_IMAGE
-                                args '-v ${PWD}:/usr/src/app -w /usr/src/app'
+                                args '-v ${PWD}:/usr/src/app'
                             }
                         }
 
@@ -147,9 +147,11 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            sh 'ls'
-                            sh 'pwd'
-                            sh "mvn surefire-report:report"
+                            project('/usr/src/app') {
+                                sh 'ls'
+                                sh 'pwd'
+                                sh "mvn surefire-report:report"
+                            }
                         }
 
                         post {
