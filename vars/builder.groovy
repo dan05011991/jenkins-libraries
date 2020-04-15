@@ -30,7 +30,7 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = true
-            DOCKER_TAG_VERSION = ''
+            DOCKER_TAG_VERSION = 'EXAMPLE'
             MAVEN_IMAGE = 'maven:3.6.3-jdk-8'
             NODE_IMAGE = 'node:alpine3.11'
         }
