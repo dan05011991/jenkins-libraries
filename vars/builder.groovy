@@ -254,8 +254,8 @@ def call(Map pipelineParams) {
                             script {
 
                                 dir('project') {
-                                    sh('pwd')
-                                    sh('ls')
+                                    println sh(script: 'pwd', returnStdout: true)
+                                    println sh(script: 'ls', returnStdout: true)
                                     DOCKER_TAG_VERSION = sh(
                                             script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
                                             returnStdout: true
