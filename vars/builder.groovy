@@ -40,7 +40,7 @@ def call(Map pipelineParams) {
 
         stages {
 
-            stage('Checkout') {
+            stage('Pipeline setup') {
 
                 parallel {
 
@@ -280,7 +280,7 @@ def call(Map pipelineParams) {
                         isOpsBuild() || isRefBuild()
                     }
                 }
-                
+
                 steps {
 
                     dir('deployment') {
