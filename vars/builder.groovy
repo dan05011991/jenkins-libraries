@@ -156,9 +156,7 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            dir('project') {
-                                sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
-                            }
+                            sh "mvn -f pom.xml surefire-report:report"
                         }
 
                         post {
