@@ -147,12 +147,7 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                      
-                                echo 'here'
-                                sh "ls"
-
-                                sh "cd /usr/src/app && mvn surefire-report:report"
-
+                            sh "&& mvn -f /usr/src/app/pom.xml surefire-report:report"
                         }
 
                         post {
