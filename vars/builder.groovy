@@ -147,7 +147,7 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            sh "&& mvn -f /usr/src/app/pom.xml surefire-report:report"
+                            sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
                         }
 
                         post {
