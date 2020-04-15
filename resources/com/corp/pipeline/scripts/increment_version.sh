@@ -1,3 +1,5 @@
+#!/bin/bash
+
 increment_version ()
 {
   declare -a part=(${1//\./ })
