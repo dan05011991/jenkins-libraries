@@ -16,6 +16,12 @@ def isOpsBuild() {
     return BRANCH_NAME == 'master'
 }
 
+def createScript(scriptName) {
+    def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
+    writeFile file: "${scriptName}", text: scriptContent
+    sh "chmod +x ${scriptName}"
+}
+
 def call(Map pipelineParams) {
     pipeline {
         agent any
@@ -72,6 +78,19 @@ def call(Map pipelineParams) {
                                         url: "${pipelineParams.deploymentRepo}",
                                         credentialsId: 'ssh'
                                 )
+                            }
+                        }
+                    }
+
+                    stage('Create pipeline scripts') {
+
+                        steps {
+
+                            dir('project') {
+
+                                script {
+                                    createScript('increment_version.sh')
+                                }
                             }
                         }
                     }
@@ -172,10 +191,7 @@ def call(Map pipelineParams) {
 
                                 dir('project') {
 
-                                    scriptName = 'increment_version.sh'
-                                    def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
-                                    writeFile file: "${scriptName}", text: scriptContent
-                                    sh "chmod +x ${scriptName}"
+
 
                                     UI_VERSION = sh(
                                             script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
