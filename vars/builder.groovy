@@ -160,7 +160,8 @@ def call(Map pipelineParams) {
                                 sh "docker build -f test.dockerfile . -t $unique_Id"
 
                                 dir('execution') {
-                                    sh "docker run --name ${unique_Id} -v ${PWD}:/usr/webapp ${unique_Id}"
+                                    cwd = pwd()
+                                    sh "docker run --name ${unique_Id} -v $cwd:/usr/webapp ${unique_Id}"
                                     sh "docker rm -f ${unique_id}"
                                     sh "docker rmi ${unique_id}"
                                 }
