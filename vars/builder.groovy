@@ -150,7 +150,7 @@ def call(Map pipelineParams) {
 
                         agent {
                             dockerfile {
-                                filename "project/test.dockerfile"
+                                filename "$PROJECT_DIR/test.dockerfile"
                             }
                         }
 
