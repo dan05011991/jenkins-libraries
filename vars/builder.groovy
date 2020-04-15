@@ -187,7 +187,9 @@ def call(Map pipelineParams) {
                                             returnStdout: true
                                     ).trim()
 
-                                    sh("sed -i -e \"s/appVersion\\: '${UI_VERSION}'/appVersion\\: '${DOCKER_TAG_VERSION}'/g\" conf/config-release.js")
+                                    sh("""
+                                        sed -i -e "s/appVersion\\: '${UI_VERSION}'/appVersion\\: '${DOCKER_TAG_VERSION}'/g" conf/config-release.js"
+                                    """)
                                 }
                             }
                         }
