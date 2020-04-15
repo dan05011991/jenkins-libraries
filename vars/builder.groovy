@@ -59,8 +59,9 @@ def call(Map pipelineParams) {
                                         credentialsId: 'ssh'
                                 )
 
+                                echo ${PWD}
                                 script {
-                                    println ${PWD}
+
                                     IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                                 }
                             }
