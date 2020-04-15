@@ -31,6 +31,8 @@ def call(Map pipelineParams) {
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = true
             DOCKER_TAG_VERSION = ''
+            MAVEN_IMAGE = 'maven:3.6.3-jdk-8'
+            NODE_IMAGE = 'node:alpine3.11'
         }
 
         options {
@@ -123,8 +125,20 @@ def call(Map pipelineParams) {
                     }
                 }
 
+                environment {
+                    unique_Id = UUID.randomUUID().toString()
+                }
+
                 parallel {
-                    stage('Maven Test') {
+
+                    stage('Maven') {
+
+                        agent {
+                            docker {
+                                image MAVEN_IMAGE
+                            }
+                        }
+
                         when {
                             expression {
                                 pipelineParams.buildType == 'maven'
@@ -134,6 +148,30 @@ def call(Map pipelineParams) {
                         steps {
                             dir('project') {
                                 sh "mvn surefire-report:report"
+                            }
+                        }
+
+                        post {
+                            always {
+                                dir('project') {
+                                    junit 'target/surefire-reports/**/*.xml'
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Gulp') {
+
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'gulp'
+                            }
+                        }
+
+                        steps {
+                            dir('project') {
+                                sh "docker build -f test.dockerfile . -t ${unique_Id}"
+                                sh "docker run ${unique_Id}"
                             }
                         }
 
