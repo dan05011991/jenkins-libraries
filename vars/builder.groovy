@@ -147,6 +147,8 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
+                            sh 'ls'
+                            sh 'pwd'
                             sh "mvn surefire-report:report"
                         }
 
