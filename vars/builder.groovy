@@ -161,7 +161,7 @@ def call(Map pipelineParams) {
 
                         post {
                             always {
-                                dir($PROJECT_DIR) {
+                                dir("$PROJECT_DIR") {
                                     junit 'target/surefire-reports/**/*.xml'
                                 }
                             }
