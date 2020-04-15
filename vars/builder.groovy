@@ -33,6 +33,8 @@ def call(Map pipelineParams) {
             DOCKER_TAG_VERSION = 'EXAMPLE'
             MAVEN_IMAGE = 'maven:3.6.3-jdk-8'
             NODE_IMAGE = 'node:alpine3.11'
+            PROJECT_DIR = ''
+            DEPLOYMENT_DIR = ''
         }
 
         options {
@@ -58,6 +60,7 @@ def call(Map pipelineParams) {
                                 )
 
                                 script {
+                                    println ${PWD}
                                     IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                                 }
                             }
@@ -136,7 +139,7 @@ def call(Map pipelineParams) {
                         agent {
                             docker {
                                 image MAVEN_IMAGE
-                                args '-v ${PWD}:/usr/src/app'
+                                args '-v /var/jenkins_home/workspace/Backend_dev_test:/usr/src/app'
                             }
                         }
 
