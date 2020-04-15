@@ -183,7 +183,7 @@ def call(Map pipelineParams) {
                                     )
 
                                     DOCKER_TAG_VERSION = sh(
-                                            script: "increment_version.sh ${UI_VERSION}",
+                                            script: "./increment_version.sh ${UI_VERSION}",
                                             returnStdout: true
                                     ).trim()
 
