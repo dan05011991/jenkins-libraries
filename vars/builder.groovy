@@ -148,33 +148,23 @@ def call(Map pipelineParams) {
                             }
                         }
 
-//                        agent {
-//                            docker {
-//                                image MAVEN_IMAGE
-//                                args "-v $PROJECT_DIR:/usr/src/app"
-//                            }
-//                        }
+                        agent {
+                            docker {
+                                image MAVEN_IMAGE
+                                args "--name ${unique_Id}"
+                            }
+                        }
 
                         steps {
                             dir('project') {
-                                sh "docker build -f test.dockerfile . -t $unique_Id"
-
-                                dir('execution') {
-                                    script {
-                                        cwd = pwd()
-                                    }
-                                    sh "docker run --name ${unique_Id} -v $cwd:/usr/webapp/target ${unique_Id}"
-                                    sh "docker rm -f ${unique_id}"
-                                    sh "docker rmi ${unique_id}"
-                                }
+                                sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
                             }
-                           // sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
                         }
 
                         post {
                             always {
-                                dir("execution") {
-                                    junit 'surefire-reports/**/*.xml'
+                                dir("$PROJECT_DIR") {
+                                    junit 'target/surefire-reports/**/*.xml'
                                 }
                             }
                         }
