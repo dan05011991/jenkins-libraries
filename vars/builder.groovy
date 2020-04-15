@@ -136,7 +136,7 @@ def call(Map pipelineParams) {
                         agent {
                             docker {
                                 image MAVEN_IMAGE
-                                args '--entrypoint bash -v ${PWD}:/usr/src/app -w /usr/src/app'
+                                args '-v ${PWD}:/usr/src/app -w /usr/src/app'
                             }
                         }
 
@@ -147,9 +147,7 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            dir('/usr/src/app') {
-                                sh "mvn surefire-report:report"
-                            }
+                            sh "mvn surefire-report:report"
                         }
 
                         post {
