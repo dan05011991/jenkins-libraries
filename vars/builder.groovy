@@ -142,7 +142,9 @@ def call(Map pipelineParams) {
                     stage('Maven') {
 
                         when {
-                            pipelineParams.buildType == 'maven'
+                            expression {
+                                pipelineParams.buildType == 'maven'
+                            }
                         }
 
                         steps {
