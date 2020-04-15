@@ -147,7 +147,7 @@ def call(Map pipelineParams) {
                                 pipelineParams.buildType == 'maven'
                             }
                         }
-                        
+
 //                        agent {
 //                            docker {
 //                                image MAVEN_IMAGE
@@ -160,7 +160,7 @@ def call(Map pipelineParams) {
                                 sh "docker build -f test.dockerfile . -t $unique_Id"
 
                                 dir('execution') {
-                                    sh "docker run --name ${unique_Id} -v .:/usr/webapp ${unique_Id}"
+                                    sh "docker run --name ${unique_Id} -v ${PWD}:/usr/webapp ${unique_Id}"
                                     sh "docker rm -f ${unique_id}"
                                     sh "docker rmi ${unique_id}"
                                 }
