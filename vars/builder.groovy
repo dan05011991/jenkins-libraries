@@ -63,7 +63,6 @@ def call(Map pipelineParams) {
 
                                 script {
                                     PROJECT_DIR = pwd()
-                                    echo "DIRECTORY: $PROJECT_DIR"
                                     IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                                 }
                             }
@@ -86,6 +85,10 @@ def call(Map pipelineParams) {
                                         url: "${pipelineParams.deploymentRepo}",
                                         credentialsId: 'ssh'
                                 )
+
+                                script {
+                                    DEPLOYMENT_DIR = pwd()
+                                }
                             }
                         }
                     }
@@ -142,7 +145,7 @@ def call(Map pipelineParams) {
                         agent {
                             docker {
                                 image MAVEN_IMAGE
-                                args '-v /var/jenkins_home/workspace/Backend_dev_test:/usr/src/app'
+                                args "-v $PROJECT_DIR:/usr/src/app"
                             }
                         }
 
@@ -153,12 +156,12 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            sh "mvn -f /usr/src/app/project/pom.xml surefire-report:report"
+                            sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
                         }
 
                         post {
                             always {
-                                dir('project') {
+                                dir($PROJECT_DIR) {
                                     junit 'target/surefire-reports/**/*.xml'
                                 }
                             }
