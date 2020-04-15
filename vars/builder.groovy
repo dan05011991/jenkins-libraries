@@ -217,62 +217,63 @@ def call(Map pipelineParams) {
                         (isOpsBuild() || isRefBuild()) && !IS_BUMP_COMMIT
                     }
                 }
+                stages {
 
-                stage('Retrieve Version') {
+                    stage('Retrieve Version') {
 
-                    parallel {
+                        parallel {
 
-                        stage('Maven') {
+                            stage('Maven') {
 
-                            when {
-                                expression {
-                                    pipelineParams.buildType == 'maven'
+                                when {
+                                    expression {
+                                        pipelineParams.buildType == 'maven'
+                                    }
+                                }
+
+                                step {
+
+                                    dir('project') {
+                                        script {
+                                            DOCKER_TAG_VERSION = sh(
+                                                    script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                                    returnStdout: true
+                                            ).trim()
+                                        }
+                                    }
                                 }
                             }
 
-                            step {
+                            stage('Gulp') {
 
-                                dir('project') {
+                                when {
+                                    expression {
+                                        pipelineParams.buildType == 'gulp'
+                                    }
+                                }
+
+                                step {
+
                                     script {
+
                                         DOCKER_TAG_VERSION = sh(
-                                                script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                                script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
                                                 returnStdout: true
-                                        ).trim()
+                                        )
                                     }
                                 }
                             }
                         }
-
-                        stage('Gulp') {
-
-                            when {
-                                expression {
-                                    pipelineParams.buildType == 'gulp'
-                                }
-                            }
-
-                            step {
-
-                                script {
-
-                                    DOCKER_TAG_VERSION = sh(
-                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
-                                            returnStdout: true
-                                    )
-                                }
-                            }
-                        }
                     }
-                }
 
-                stage('Update Version') {
+                    stage('Update Version') {
 
-                    steps {
+                        steps {
 
-                        dir('deployment') {
+                            dir('deployment') {
 
-                            sshagent(credentials: ['ssh']) {
-                                sh """
+                                sshagent(credentials: ['ssh']) {
+                                    sh """
                                 IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
                                 COMPOSE_FILE=docker-compose.yaml
                                 SNAPSHOT=${DOCKER_TAG_VERSION}
@@ -285,6 +286,7 @@ def call(Map pipelineParams) {
                                 fi
 
                             """
+                                }
                             }
                         }
                     }
