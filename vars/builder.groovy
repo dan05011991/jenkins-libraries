@@ -129,21 +129,81 @@ def call(Map pipelineParams) {
                 }
             }
 
-
-            stage('Maven version update') {
+            stage('Version update') {
 
                 when {
                     expression {
-                        pipelineParams.buildType == 'maven' && isRefBuild() && !IS_BUMP_COMMIT
+                        isRefBuild() && !IS_BUMP_COMMIT
                     }
                 }
 
-                steps {
+                parallel {
 
-                    dir('project') {
-                        sh 'mvn release:update-versions -B'
-                        sh 'git add pom.xml'
-                        sh 'git commit -m \'[Automated commit: version bump]\''
+                    stage('Maven') {
+
+                        when {
+                            pipelineParams.buildType == 'maven'
+                        }
+
+                        steps {
+
+                            dir('project') {
+                                sh 'mvn release:update-versions -B'
+                                sh 'git add pom.xml'
+                                sh 'git commit -m \'[Automated commit: version bump]\''
+                            }
+
+                        }
+                    }
+
+                    stage('Gulp') {
+
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'gulp'
+                            }
+                        }
+
+                        steps {
+
+                            script {
+
+                                UI_VERSION = sh(
+                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                        returnStdout: true
+                                )
+
+                                DOCKER_TAG_VERSION = sh(
+                                        script: """
+                                            increment_version ()
+                                            {
+                                                declare -a part=( \${1//\\./ } )
+                                                declare    new
+                                                declare -i carry=1
+            
+                                                for (( CNTR=\${#part[@]}-1; CNTR>=0; CNTR-=1 )); do
+                                                len=\${#part[CNTR]}
+                                                new=\$((part[CNTR]+carry))
+                                                [ \${#new} -gt $len ] && carry=1 || carry=0
+                                                [ \$CNTR -gt 0 ] && part[CNTR]=\${new: -len} || part[CNTR]=\${new}
+                                                done
+                                                new="\${part[*]}"
+                                                echo -e "\${new// /.}"
+                                            } 
+        
+                                            version='${UI_VERSION}'
+        
+                                            increment_version \$version
+                                                
+                                            """,
+                                        returnStdout: true
+                                ).trim()
+
+                                sh("sed -i -e \"s/appVersion\\: '${UI_VERSION}'/appVersion\\: '${DOCKER_TAG_VERSION}'/g\" conf/config-release.js")
+
+                            }
+                        }
+
                     }
                 }
             }
@@ -156,22 +216,63 @@ def call(Map pipelineParams) {
                     }
                 }
 
-                steps {
+                stage('Retrieve Version') {
 
-                    dir('deployment') {
+                    parallel {
 
-                        script {
-                            DOCKER_TAG_VERSION = sh(
-                                script: 'mvn -f ../project/pom.xml -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                returnStdout: true
-                            ).trim()
+                        stage('Maven') {
+
+                            when {
+                                expression {
+                                    pipelineParams.buildType == 'maven'
+                                }
+                            }
+
+                            step {
+
+                                dir('project') {
+                                    script {
+                                        DOCKER_TAG_VERSION = sh(
+                                                script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                                returnStdout: true
+                                        ).trim()
+                                    }
+                                }
+                            }
                         }
 
-                        sshagent(credentials: ['ssh']) {
-                            sh """
+                        stage('Gulp') {
+
+                            when {
+                                expression {
+                                    pipelineParams.buildType == 'gulp'
+                                }
+                            }
+
+                            step {
+
+                                script {
+
+                                    DOCKER_TAG_VERSION = sh(
+                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                            returnStdout: true
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Update Version') {
+
+                    steps {
+
+                        dir('deployment') {
+
+                            sshagent(credentials: ['ssh']) {
+                                sh """
                                 IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
                                 COMPOSE_FILE=docker-compose.yaml
-                                PROJECT_DIR=../project
                                 SNAPSHOT=${DOCKER_TAG_VERSION}
                         
                                 sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
@@ -182,6 +283,7 @@ def call(Map pipelineParams) {
                                 fi
 
                             """
+                            }
                         }
                     }
                 }
