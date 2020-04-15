@@ -323,7 +323,7 @@ def call(Map pipelineParams) {
                         }
                     }
 
-                    stage('Push pom update') {
+                    stage('Push project update') {
 
                         steps {
                             dir('project') {
