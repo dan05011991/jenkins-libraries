@@ -157,8 +157,12 @@ def call(Map pipelineParams) {
 
                         steps {
                             dir('project') {
-                                sh "docker build -f test.dockerfile . -t $unique_Id"
-                                sh "docker run -rm $unique_Id"
+                                dir('execution') {
+                                    sh "docker build -f test.dockerfile . -t $unique_Id"
+                                    sh "docker run --name ${unique_Id} -v ${PWD}:/usr/webapp ${unique_Id}"
+                                    sh "docker rm -f ${unique_id}"
+                                    sh "docker rmi ${unique_id}"
+                                }
                             }
                            // sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
                         }
