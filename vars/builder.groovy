@@ -178,7 +178,7 @@ def call(Map pipelineParams) {
                                     sh "chmod +x ${scriptName}"
 
                                     UI_VERSION = sh(
-                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
                                             returnStdout: true
                                     )
 
@@ -189,7 +189,7 @@ def call(Map pipelineParams) {
 
                                     sh("""
                                         #!/bin/bash
-                                        sed -i "s/appVersion: '1.0.0'/appVersion: '${DOCKER_TAG_VERSION}'/g" conf/config-release.js
+                                        sed -i "s/appVersion: '${UI_VERSION}'/appVersion: '${DOCKER_TAG_VERSION}'/g" conf/config-release.js
                                     """)
 
 
