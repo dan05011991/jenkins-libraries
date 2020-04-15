@@ -147,7 +147,7 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            project('/usr/src/app') {
+                            dir('/usr/src/app') {
                                 sh 'ls'
                                 sh 'pwd'
                                 sh "mvn surefire-report:report"
