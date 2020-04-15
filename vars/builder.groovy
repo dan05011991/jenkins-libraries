@@ -231,7 +231,7 @@ def call(Map pipelineParams) {
                                     }
                                 }
 
-                                step {
+                                steps {
 
                                     dir('project') {
                                         script {
@@ -252,7 +252,7 @@ def call(Map pipelineParams) {
                                     }
                                 }
 
-                                step {
+                                steps {
 
                                     script {
 
