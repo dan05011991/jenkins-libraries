@@ -59,9 +59,10 @@ def call(Map pipelineParams) {
                                         credentialsId: 'ssh'
                                 )
 
-                                PROJECT_DIR = pwd()
+
 
                                 script {
+                                    PROJECT_DIR = pwd()
                                     echo "DIRECTORY: $PROJECT_DIR"
                                     IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                                 }
