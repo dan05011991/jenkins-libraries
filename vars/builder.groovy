@@ -217,77 +217,72 @@ def call(Map pipelineParams) {
                         (isOpsBuild() || isRefBuild()) && !IS_BUMP_COMMIT
                     }
                 }
-                stages {
 
-                    stage('Retrieve Version') {
+                parallel {
 
-                        parallel {
+                    stage('Maven') {
 
-                            stage('Maven') {
-
-                                when {
-                                    expression {
-                                        pipelineParams.buildType == 'maven'
-                                    }
-                                }
-
-                                steps {
-
-                                    dir('project') {
-                                        script {
-                                            DOCKER_TAG_VERSION = sh(
-                                                    script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                                    returnStdout: true
-                                            ).trim()
-                                        }
-                                    }
-                                }
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'maven'
                             }
+                        }
 
-                            stage('Gulp') {
+                        steps {
 
-                                when {
-                                    expression {
-                                        pipelineParams.buildType == 'gulp'
-                                    }
-                                }
-
-                                steps {
-
-                                    script {
-
-                                        DOCKER_TAG_VERSION = sh(
-                                                script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
-                                                returnStdout: true
-                                        )
-                                    }
+                            dir('project') {
+                                script {
+                                    DOCKER_TAG_VERSION = sh(
+                                            script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                            returnStdout: true
+                                    ).trim()
                                 }
                             }
                         }
                     }
 
-                    stage('Update Version') {
+                    stage('Gulp') {
+
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'gulp'
+                            }
+                        }
 
                         steps {
 
-                            dir('deployment') {
+                            script {
 
-                                sshagent(credentials: ['ssh']) {
-                                    sh """
-                                IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
-                                COMPOSE_FILE=docker-compose.yaml
-                                SNAPSHOT=${DOCKER_TAG_VERSION}
-                        
-                                sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
-                                
-                                if [ \$(git diff | wc -l) -gt 0 ]; then
-                                    git add docker-compose.yaml
-                                    git commit -m "[Automated commit: version bump]"
-                                fi
-
-                            """
-                                }
+                                DOCKER_TAG_VERSION = sh(
+                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                        returnStdout: true
+                                )
                             }
+                        }
+                    }
+                }
+            }
+
+            stage('Update Version') {
+
+                steps {
+
+                    dir('deployment') {
+
+                        sshagent(credentials: ['ssh']) {
+                            sh """
+                        IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
+                        COMPOSE_FILE=docker-compose.yaml
+                        SNAPSHOT=${DOCKER_TAG_VERSION}
+                
+                        sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
+                        
+                        if [ \$(git diff | wc -l) -gt 0 ]; then
+                            git add docker-compose.yaml
+                            git commit -m "[Automated commit: version bump]"
+                        fi
+
+                    """
                         }
                     }
                 }
