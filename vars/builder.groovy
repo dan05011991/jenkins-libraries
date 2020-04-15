@@ -142,18 +142,18 @@ def call(Map pipelineParams) {
 
                     stage('Maven') {
 
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'maven'
+                            }
+                        }
+                        
 //                        agent {
 //                            docker {
 //                                image MAVEN_IMAGE
 //                                args "-v $PROJECT_DIR:/usr/src/app"
 //                            }
 //                        }
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'maven'
-                            }
-                        }
 
                         steps {
                             dir('project') {
@@ -179,16 +179,16 @@ def call(Map pipelineParams) {
 
                     stage('Gulp') {
 
+                        when {
+                            expression {
+                                pipelineParams.buildType == 'gulp'
+                            }
+                        }
+
                         agent {
                             docker {
                                 image MAVEN_IMAGE
                                 args "-v $PROJECT_DIR:/usr/src/app"
-                            }
-                        }
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'gulp'
                             }
                         }
 
