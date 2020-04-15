@@ -142,12 +142,12 @@ def call(Map pipelineParams) {
 
                     stage('Maven') {
 
-                        agent {
-                            docker {
-                                image MAVEN_IMAGE
-                                args "-v $PROJECT_DIR:/usr/src/app"
-                            }
-                        }
+//                        agent {
+//                            docker {
+//                                image MAVEN_IMAGE
+//                                args "-v $PROJECT_DIR:/usr/src/app"
+//                            }
+//                        }
 
                         when {
                             expression {
@@ -156,7 +156,11 @@ def call(Map pipelineParams) {
                         }
 
                         steps {
-                            sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
+                            dir('project') {
+                                sh "docker build -f test.dockerfile . -t $unique_Id"
+                                sh "docker run -rm $unique_Id"
+                            }
+                           // sh "mvn -f /usr/src/app/pom.xml surefire-report:report"
                         }
 
                         post {
@@ -169,6 +173,13 @@ def call(Map pipelineParams) {
                     }
 
                     stage('Gulp') {
+
+                        agent {
+                            docker {
+                                image MAVEN_IMAGE
+                                args "-v $PROJECT_DIR:/usr/src/app"
+                            }
+                        }
 
                         when {
                             expression {
@@ -185,7 +196,7 @@ def call(Map pipelineParams) {
 
                         post {
                             always {
-                                dir('project') {
+                                dir("$PROJECT_DIR") {
                                     junit 'target/surefire-reports/**/*.xml'
                                 }
                             }
