@@ -218,11 +218,11 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Deployment file update') {
+            stage('Get deployment version') {
 
                 when {
                     expression {
-                        (isOpsBuild() || isRefBuild()) && !IS_BUMP_COMMIT
+                        isOpsBuild() || isRefBuild()
                     }
                 }
 
@@ -273,8 +273,14 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Update Version') {
+            stage('Update compose version') {
 
+                when {
+                    expression {
+                        isOpsBuild() || isRefBuild()
+                    }
+                }
+                
                 steps {
 
                     dir('deployment') {
