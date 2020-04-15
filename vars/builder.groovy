@@ -170,13 +170,15 @@ def call(Map pipelineParams) {
 
                             script {
 
-                                UI_VERSION = sh(
-                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
-                                        returnStdout: true
-                                )
+                                dir('project') {
+                                    
+                                    UI_VERSION = sh(
+                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                            returnStdout: true
+                                    )
 
-                                DOCKER_TAG_VERSION = sh(
-                                        script: """
+                                    DOCKER_TAG_VERSION = sh(
+                                            script: """
                                             increment_version ()
                                             {
                                                 declare -a part=( \${1//\\./ } )
@@ -198,11 +200,11 @@ def call(Map pipelineParams) {
                                             increment_version \$version
                                                 
                                             """,
-                                        returnStdout: true
-                                ).trim()
+                                            returnStdout: true
+                                    ).trim()
 
-                                sh("sed -i -e \"s/appVersion\\: '${UI_VERSION}'/appVersion\\: '${DOCKER_TAG_VERSION}'/g\" conf/config-release.js")
-
+                                    sh("sed -i -e \"s/appVersion\\: '${UI_VERSION}'/appVersion\\: '${DOCKER_TAG_VERSION}'/g\" conf/config-release.js")
+                                }
                             }
                         }
 
@@ -254,8 +256,6 @@ def call(Map pipelineParams) {
                             script {
 
                                 dir('project') {
-                                    println sh(script: 'pwd', returnStdout: true)
-                                    println sh(script: 'ls', returnStdout: true)
                                     DOCKER_TAG_VERSION = sh(
                                             script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
                                             returnStdout: true
