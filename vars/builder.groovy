@@ -171,7 +171,7 @@ def call(Map pipelineParams) {
                             script {
 
                                 dir('project') {
-                                    
+
                                     UI_VERSION = sh(
                                             script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
                                             returnStdout: true
@@ -188,7 +188,7 @@ def call(Map pipelineParams) {
                                                 for (( CNTR=\${#part[@]}-1; CNTR>=0; CNTR-=1 )); do
                                                 len=\${#part[CNTR]}
                                                 new=\$((part[CNTR]+carry))
-                                                [ \${#new} -gt $len ] && carry=1 || carry=0
+                                                [ \${#new} -gt \$len ] && carry=1 || carry=0
                                                 [ \$CNTR -gt 0 ] && part[CNTR]=\${new: -len} || part[CNTR]=\${new}
                                                 done
                                                 new="\${part[*]}"
