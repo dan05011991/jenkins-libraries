@@ -136,6 +136,7 @@ def call(Map pipelineParams) {
                         agent {
                             docker {
                                 image MAVEN_IMAGE
+                                args '-v ${PWD}:/usr/src/app -w /usr/src/app'
                             }
                         }
 
