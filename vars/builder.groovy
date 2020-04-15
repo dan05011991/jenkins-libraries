@@ -252,11 +252,13 @@ def call(Map pipelineParams) {
                         steps {
 
                             script {
-
-                                DOCKER_TAG_VERSION = sh(
-                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
-                                        returnStdout: true
-                                )
+                                
+                                dir('project') {
+                                    DOCKER_TAG_VERSION = sh(
+                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js",
+                                            returnStdout: true
+                                    )
+                                }
                             }
                         }
                     }
