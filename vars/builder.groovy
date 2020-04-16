@@ -148,14 +148,17 @@ def call(Map pipelineParams) {
                             }
                         }
 
-                        agent {
-                            dockerfile {
-                                filename "$PROJECT_DIR/test.dockerfile"
-                            }
-                        }
+//                        agent {
+//                            dockerfile {
+//                                filename "$PROJECT_DIR/test.dockerfile"
+//                            }
+//                        }
 
                         steps {
-                            dir('/usr/webapp') {
+                            dir("$PROJECT_DIR") {
+                                sh "docker build -f test.dockerfile . -t ${unique_Id}"
+                                sh "docker run --name ${unique_Id} ${unique_Id}"
+
                                 sh "mvn surefire-report:report"
                             }
                         }
