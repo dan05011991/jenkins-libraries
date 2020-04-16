@@ -29,9 +29,7 @@ def call(Map pipelineParams) {
         triggers {
             cron('H/1 * * * *')
         }
-
-        properties([pipelineTriggers([cron('H/1 * * * *')])])
-
+        
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
