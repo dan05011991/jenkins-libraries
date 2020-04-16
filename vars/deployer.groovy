@@ -1,5 +1,7 @@
 pipeline {
-    agent 'master'
+    agent {
+        label 'master'
+    }
 
     options {
         disableConcurrentBuilds()
