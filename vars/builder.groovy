@@ -29,7 +29,7 @@ def call(Map pipelineParams) {
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
-            IS_BUMP_COMMIT = true
+            IS_BUMP_COMMIT = false
             DOCKER_TAG_VERSION = 'EXAMPLE'
             PROJECT_DIR = ''
             DEPLOYMENT_DIR = ''
@@ -110,7 +110,7 @@ def call(Map pipelineParams) {
 
                 when {
                     expression {
-                        IS_BUMP_COMMIT
+                        isOpsBuild() && isRefBuild()
                     }
                 }
 
