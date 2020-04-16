@@ -178,7 +178,7 @@ def call(Map pipelineParams) {
 
                         steps {
                             dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.deploymentRepo} . -t ${unique_Id}"
+                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
                                 sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
                                 sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
                             }
