@@ -148,12 +148,6 @@ def call(Map pipelineParams) {
                             }
                         }
 
-//                        agent {
-//                            dockerfile {
-//                                filename "$PROJECT_DIR/test.dockerfile"
-//                            }
-//                        }
-
                         steps {
                             dir("$PROJECT_DIR") {
                                 sh "docker build -f test.dockerfile . -t ${unique_Id}"
@@ -181,13 +175,6 @@ def call(Map pipelineParams) {
                                 pipelineParams.buildType == 'gulp'
                             }
                         }
-
-//                        agent {
-//                            docker {
-//                                image MAVEN_IMAGE
-//                                args "-v $PROJECT_DIR:/usr/src/app"
-//                            }
-//                        }
 
                         steps {
                             dir("$PROJECT_DIR") {
