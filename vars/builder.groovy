@@ -24,7 +24,7 @@ def createScript(scriptName) {
 
 def call(Map pipelineParams) {
     pipeline {
-        agent any
+        agent 'master'
 
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
