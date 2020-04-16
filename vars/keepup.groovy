@@ -7,34 +7,35 @@ pipeline {
     }
 
     stages {
+        parallel {
+            stage('Ref') {
 
-        stage('Ref') {
+                agent {
+                    label "ref"
+                }
 
-            agent {
-                label "ref"
+                steps {
+                    build job: 'Deploy', parameters: [
+                            [$class: 'StringParameterValue', name: 'environment', value: "ops"],
+                            [$class: 'StringParameterValue', name: 'repo', value: "git@github.com:dan05011991/demo-application-docker.git"],
+                            [$class: 'StringParameterValue', name: 'branch', value: "develop"]
+                    ]
+                }
             }
 
-            steps {
-                build job: 'Deploy', parameters: [
-                        [$class: 'StringParameterValue', name: 'environment', value: "ops"],
-                        [$class: 'StringParameterValue', name: 'repo', value: "git@github.com:dan05011991/demo-application-docker.git"],
-                        [$class: 'StringParameterValue', name: 'branch', value: "develop"]
-                ]
-            }
-        }
+            stage('Ops') {
 
-        stage('Ops') {
+                agent {
+                    label "ops"
+                }
 
-            agent {
-                label "ops"
-            }
-
-            steps {
-                build job: 'Deploy', parameters: [
-                        [$class: 'StringParameterValue', name: 'environment', value: "ops"],
-                        [$class: 'StringParameterValue', name: 'repo', value: "git@github.com:dan05011991/demo-application-docker.git"],
-                        [$class: 'StringParameterValue', name: 'branch', value: "master"]
-                ]
+                steps {
+                    build job: 'Deploy', parameters: [
+                            [$class: 'StringParameterValue', name: 'environment', value: "ops"],
+                            [$class: 'StringParameterValue', name: 'repo', value: "git@github.com:dan05011991/demo-application-docker.git"],
+                            [$class: 'StringParameterValue', name: 'branch', value: "master"]
+                    ]
+                }
             }
         }
     }
