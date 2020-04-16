@@ -26,10 +26,6 @@ def call(Map pipelineParams) {
     pipeline {
         agent any
 
-        triggers {
-            cron('* * * * *')
-        }
-
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
@@ -430,9 +426,6 @@ def call(Map pipelineParams) {
             stage('Deploy') {
                 parallel {
                     stage('Deploy to Ref') {
-                        agent {
-                            label 'ref'
-                        }
 
                         when {
                             expression {
@@ -443,22 +436,17 @@ def call(Map pipelineParams) {
                         steps {
                             dir('deployment') {
 
-                                git(
-                                        branch: "${SOURCE_BRANCH}",
-                                        url: "${pipelineParams.deploymentRepo}",
-                                        credentialsId: 'ssh'
-                                )
-
-                                sh 'docker-compose -f docker-compose.yaml up -d'
+                                build job: 'Deploy', parameters: [
+                                        [$class: 'StringParameterValue', name: 'environment', value: "ref"],
+                                        [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
+                                        [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
+                                ]
                             }
                         }
                     }
 
 
                     stage('Deploy to Ops') {
-                        agent {
-                            label 'ops'
-                        }
 
                         when {
                             expression {
@@ -469,13 +457,11 @@ def call(Map pipelineParams) {
                         steps {
                             dir('deployment') {
 
-                                git(
-                                        branch: "${SOURCE_BRANCH}",
-                                        url: "${pipelineParams.deploymentRepo}",
-                                        credentialsId: 'ssh'
-                                )
-
-                                sh 'docker-compose -f docker-compose.yaml up -d'
+                                build job: 'Deploy', parameters: [
+                                        [$class: 'StringParameterValue', name: 'environment', value: "ops"],
+                                        [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
+                                        [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
+                                ]
                             }
                         }
                     }
