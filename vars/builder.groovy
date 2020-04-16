@@ -165,7 +165,7 @@ def call(Map pipelineParams) {
                         post {
                             always {
                                 dir("$PROJECT_DIR") {
-                                    junit 'target/surefire-reports/**/*.xml'
+                                    junit 'surefire-reports/**/*.xml'
                                 }
 
                                 sh "docker rm -f ${unique_Id}"
