@@ -30,7 +30,7 @@ def call(Map pipelineParams) {
             cron('H/1 * * * *')
         }
 
-        properties([pipelineTriggers([cron('H 23 * * *')])])
+        properties([pipelineTriggers([cron('H/1 * * * *')])])
 
         environment {
             SOURCE_BRANCH = "${BRANCH_NAME}"
