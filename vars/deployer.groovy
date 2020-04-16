@@ -16,7 +16,7 @@ pipeline {
             steps {
 
                 dir('deployment') {
-                    
+
                     git(
                             branch: "${env.branch}",
                             url: "${env.repo}",
