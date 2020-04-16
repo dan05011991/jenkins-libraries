@@ -157,9 +157,9 @@ def call(Map pipelineParams) {
                         steps {
                             dir("$PROJECT_DIR") {
                                 sh "docker build -f test.dockerfile . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id}"
+                                sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
 
-                                sh "mvn surefire-report:report"
+
                             }
                         }
 
