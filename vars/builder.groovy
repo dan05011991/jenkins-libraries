@@ -52,6 +52,7 @@ def customParallel(steps) {
 
 def call(Map pipelineParams) {
 
+    def String SOURCE_COMMIT = ''
     def String SOURCE_BRANCH = "${BRANCH_NAME}"
     def String SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
     def String IS_BUMP_COMMIT = false
@@ -78,6 +79,7 @@ def call(Map pipelineParams) {
                             )
 
                             script {
+                                SOURCE_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD')
                                 PROJECT_DIR = pwd()
                                 IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                             }
@@ -303,9 +305,11 @@ def call(Map pipelineParams) {
         })
     }
 
-    def Boolean createRelease = false
+
 
     if(isRefBuild()) {
+        def Boolean createRelease = false
+
         // Input Step
         timeout(time: 15, unit: "MINUTES") {
             createRelease = input(
@@ -321,6 +325,19 @@ def call(Map pipelineParams) {
                     submitter: 'john'
             )
             echo("Input : ${createRelease}")
+        }
+
+        stage('Create Release') {
+            def String unique_Id = UUID.randomUUID().toString()
+
+            git(
+                    branch: "${SOURCE_COMMIT}",
+                    url: "${SOURCE_URL}",
+                    credentialsId: 'ssh'
+            )
+
+            sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
+            sh "git push origin release/release-${DOCKER_TAG_VERSION}"
         }
     }
 
