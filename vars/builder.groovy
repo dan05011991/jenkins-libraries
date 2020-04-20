@@ -62,7 +62,7 @@ def call(Map pipelineParams) {
             ])
         }
 
-        stage('Is Bump Commit?', isSpecialBuild(), {
+        stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
 
             echo "This is a bump commit build - exiting early"
 
