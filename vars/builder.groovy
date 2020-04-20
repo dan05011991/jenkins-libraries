@@ -333,9 +333,10 @@ def call(Map pipelineParams) {
 
                 dir('project') {
                     script {
-                        echo "COMMIT TO CHECKOUT: ${SOURCE_COMMIT}"
+                        echo "Commit: ${SOURCE_COMMIT}"
+                        echo "Docker: ${DOCKER_TAG_VERSION}"
                     }
-                    
+
                     git(
                             branch: "${SOURCE_COMMIT}",
                             url: "${SOURCE_URL}",
