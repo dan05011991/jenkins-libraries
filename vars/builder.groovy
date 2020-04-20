@@ -2,7 +2,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def call(Map pipelineParams) {
 
-    def String SOURCE_COMMIT = ''
     def String SOURCE_BRANCH = "${BRANCH_NAME}"
     def String SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
 
@@ -32,7 +31,6 @@ def call(Map pipelineParams) {
                             )
 
                             script {
-                                SOURCE_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD')
                                 PROJECT_DIR = pwd()
                                 IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                             }
