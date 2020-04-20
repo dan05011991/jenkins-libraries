@@ -310,7 +310,11 @@ def call(Map pipelineParams) {
                     message: "Do you want to create a release from this branch",
                     ok: 'Yes',
                     parameters: [
-                            booleanParam(defaultValue: true)
+                            booleanParam(
+                                    defaultValue: true,
+                                    description: 'This will create a release candidate image',
+                                    name: 'Confirm'
+                            )
                     ],
                     submitter: 'john'
             )
