@@ -120,7 +120,7 @@ def call(Map pipelineParams) {
         stage('Update project version', isSpecialBuild() && !IS_BUMP_COMMIT, {
 
             customParallel([
-                    stage('Maven', pipelineParams.buildType == 'maven', {
+                    step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
                             sh 'mvn versions:set -DremoveSnapshot'
@@ -129,7 +129,7 @@ def call(Map pipelineParams) {
 
                         }
                     }),
-                    stage('Gulp', pipelineParams.buildType == 'gulp', {
+                    step('Gulp', pipelineParams.buildType == 'gulp', {
 
                         script {
 
