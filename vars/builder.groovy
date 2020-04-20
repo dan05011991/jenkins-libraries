@@ -1,55 +1,5 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
-def lastCommitIsBumpCommit() {
-    lastCommit = sh([script: 'git log -1', returnStdout: true])
-    if (lastCommit.contains("[Automated commit: version bump]")) {
-        return true
-    } else {
-        return false
-    }
-}
-
-def isRefBuild() {
-    return BRANCH_NAME == 'develop'
-}
-
-def isOpsBuild() {
-    return BRANCH_NAME == 'master'
-}
-
-def createScript(scriptName) {
-    def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
-    writeFile file: "${scriptName}", text: scriptContent
-    sh "chmod +x ${scriptName}"
-}
-
-def stage(name, execute, block) {
-    return stage(name, execute ? block : {
-        echo "skipped stage $name"
-        Utils.markStageSkippedForConditional(name)
-    })
-}
-
-def step(name, execute, block) {
-    return [
-            'name': name,
-            'value': execute ? block : {
-                echo "skipped stage $name"
-                Utils.markStageSkippedForConditional(name)
-            }
-    ]
-}
-
-def customParallel(steps) {
-    def map = [:]
-
-    steps.each { step ->
-        map.put(step.name, step.value)
-    }
-
-    parallel(map)
-}
-
 def call(Map pipelineParams) {
 
     def String SOURCE_COMMIT = ''
@@ -306,7 +256,6 @@ def call(Map pipelineParams) {
     }
 
 
-
     if(isRefBuild()) {
         def Boolean createRelease = false
 
@@ -351,7 +300,7 @@ def call(Map pipelineParams) {
                         sh "git checkout ${SOURCE_COMMIT}"
 
                         sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
-                        sh "git push origin release/release-${DOCKER_TAG_VERSION} --force"
+                        sh "git push origin release/release-${DOCKER_TAG_VERSION}"
                     }
                 }
             }
@@ -408,5 +357,59 @@ def call(Map pipelineParams) {
             }
         }
     }
+}
+
+def lastCommitIsBumpCommit() {
+    lastCommit = sh([script: 'git log -1', returnStdout: true])
+    if (lastCommit.contains("[Automated commit: version bump]")) {
+        return true
+    } else {
+        return false
+    }
+}
+
+def isRefBuild() {
+    return BRANCH_NAME == 'develop'
+}
+
+def isOpsBuild() {
+    return BRANCH_NAME == 'master'
+}
+
+def isReleaseBuild() {
+    return BRANCH_NAME.startsWith('release/')
+}
+
+def createScript(scriptName) {
+    def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
+    writeFile file: "${scriptName}", text: scriptContent
+    sh "chmod +x ${scriptName}"
+}
+
+def stage(name, execute, block) {
+    return stage(name, execute ? block : {
+        echo "skipped stage $name"
+        Utils.markStageSkippedForConditional(name)
+    })
+}
+
+def step(name, execute, block) {
+    return [
+            'name': name,
+            'value': execute ? block : {
+                echo "skipped stage $name"
+                Utils.markStageSkippedForConditional(name)
+            }
+    ]
+}
+
+def customParallel(steps) {
+    def map = [:]
+
+    steps.each { step ->
+        map.put(step.name, step.value)
+    }
+
+    parallel(map)
 }
 
