@@ -216,7 +216,7 @@ def call(Map pipelineParams) {
                     stage('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
-                            sh "mvn versions:set-DnewVersion=${PROJECT_VERSION}-SNAPSHOT"
+                            sh "mvn versions:set -DnewVersion=${PROJECT_VERSION}-SNAPSHOT"
                             sh 'mvn release:update-versions -B'
                             sh 'git add pom.xml'
                             sh 'git commit -m "[Automated commit: version bump]"'
