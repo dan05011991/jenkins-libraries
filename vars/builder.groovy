@@ -331,11 +331,13 @@ def call(Map pipelineParams) {
             stage('Create Release') {
                 def String unique_Id = UUID.randomUUID().toString()
 
-                git(
-                        branch: "${SOURCE_COMMIT}",
-                        url: "${SOURCE_URL}",
-                        credentialsId: 'ssh'
-                )
+                dir('project') {
+                    git(
+                            branch: "${SOURCE_COMMIT}",
+                            url: "${SOURCE_URL}",
+                            credentialsId: 'ssh'
+                    )
+                }
 
                 sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
                 sh "git push origin release/release-${DOCKER_TAG_VERSION}"
