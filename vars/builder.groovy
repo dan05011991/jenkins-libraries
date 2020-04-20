@@ -17,6 +17,16 @@ def call(Map pipelineParams) {
                 disableConcurrentBuilds()
         ])
 
+        stage('Clean') {
+            dir('project') {
+                deleteDir()
+            }
+
+            dir('deployment') {
+                deleteDir()
+            }
+        }
+
         stage('Pipeline setup') {
 
             customParallel([
