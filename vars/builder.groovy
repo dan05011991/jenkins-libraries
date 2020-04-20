@@ -309,6 +309,9 @@ def call(Map pipelineParams) {
             def userInput = input(
                     message: "Do you want to create a release from this branch",
                     ok: 'Yes',
+                    parameters: [
+                            booleanParam(defaultValue: true, description: 'If you like Java, just push the button',name: 'Yes?')
+                    ],
                     submitter: 'john'
             )
             echo("Input : ${userInput}")
