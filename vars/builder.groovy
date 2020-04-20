@@ -351,7 +351,7 @@ def call(Map pipelineParams) {
                         sh "git checkout ${SOURCE_COMMIT}"
 
                         sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
-                        sh "git push origin release/release-${DOCKER_TAG_VERSION}"
+                        sh "git push origin release/release-${DOCKER_TAG_VERSION} --force"
                     }
                 }
             }
@@ -373,7 +373,7 @@ def call(Map pipelineParams) {
     echo("Input : ${deploy}")
 
     if (deploy) {
-        
+
         node {
             properties([
                     disableConcurrentBuilds()
