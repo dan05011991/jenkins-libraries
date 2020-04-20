@@ -213,7 +213,7 @@ def call(Map pipelineParams) {
         stage('Prepare project for next iteration', isSpecialBuild() && !IS_BUMP_COMMIT, {
             customParallel([
 
-                    stage('Maven', pipelineParams.buildType == 'maven', {
+                    step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
                             sh "mvn versions:set -DnewVersion=${PROJECT_VERSION}-SNAPSHOT"
@@ -250,7 +250,6 @@ def call(Map pipelineParams) {
             ])
         })
     }
-
 }
 
 def getDockerTag(version) {
