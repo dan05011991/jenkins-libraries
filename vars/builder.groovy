@@ -303,6 +303,18 @@ def call(Map pipelineParams) {
         })
     }
 
+    if(isRefBuild()) {
+        // Input Step
+        timeout(time: 15, unit: "MINUTES") {
+            def userInput = input(
+                    message: "Do you want to create a release from this branch",
+                    ok: 'Yes',
+                    submitter: 'john'
+            )
+            echo("Input : ${userInput}")
+        }
+    }
+
     // Input Step
     timeout(time: 15, unit: "MINUTES") {
         input(
