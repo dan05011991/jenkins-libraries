@@ -332,6 +332,10 @@ def call(Map pipelineParams) {
                 def String unique_Id = UUID.randomUUID().toString()
 
                 dir('project') {
+                    script {
+                        echo "COMMIT TO CHECKOUT: ${SOURCE_COMMIT}"
+                    }
+                    
                     git(
                             branch: "${SOURCE_COMMIT}",
                             url: "${SOURCE_URL}",
