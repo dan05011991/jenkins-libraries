@@ -308,12 +308,12 @@ def call(Map pipelineParams) {
         timeout(time: 15, unit: "MINUTES") {
             def userInput = input(
                     message: "Do you want to create a release from this branch",
-                    ok: 'Yes',
+                    ok: 'Submit',
                     parameters: [
                             booleanParam(
                                     defaultValue: true,
                                     description: 'This will create a release candidate image',
-                                    name: 'Confirm'
+                                    name: 'Create release branch'
                             )
                     ],
                     submitter: 'john'
