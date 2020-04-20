@@ -5,7 +5,7 @@ def call(Map pipelineParams) {
     def String SOURCE_BRANCH = "${BRANCH_NAME}"
     def String SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
 
-    def String IS_BUMP_COMMIT = false
+    def Boolean IS_BUMP_COMMIT = false
     def String DOCKER_TAG_VERSION = 'EXAMPLE'
     def String PROJECT_VERSION = 'EXAMPLE'
 
