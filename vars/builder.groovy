@@ -330,6 +330,10 @@ def call(Map pipelineParams) {
         if (createRelease) {
 
             node {
+                properties([
+                        disableConcurrentBuilds()
+                ])
+
                 stage('Create Release') {
 
                     dir('project') {
@@ -354,46 +358,54 @@ def call(Map pipelineParams) {
         }
     }
 
-    // Input Step
-    timeout(time: 15, unit: "MINUTES") {
-        input(
-                message: "Do you want to deploy and release ${DOCKER_TAG_VERSION}",
-                ok: 'Yes',
-                submitter: 'john'
-        )
-    }
+    def deploy = input(
+            message: "Do you want to deploy ${DOCKER_TAG_VERSION}",
+            ok: 'Submit',
+            parameters: [
+                    booleanParam(
+                            defaultValue: false,
+                            description: 'This will update the deployment file and deploy the image',
+                            name: 'Deploy image'
+                    )
+            ],
+            submitter: 'john'
+    )
+    echo("Input : ${deploy}")
 
-    node {
-        properties([
-                disableConcurrentBuilds()
-        ])
-
-        stage('Deploy') {
-
-            customParallel([
-                step('Deploy to Ref', isRefBuild(), {
-
-                    dir('deployment') {
-
-                        build job: 'Deploy', parameters: [
-                                [$class: 'StringParameterValue', name: 'environment', value: "ref"],
-                                [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
-                                [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
-                        ]
-                    }
-                }),
-                step('Deploy to Ops', isOpsBuild(), {
-
-                    dir('deployment') {
-
-                        build job: 'Deploy', parameters: [
-                                [$class: 'StringParameterValue', name: 'environment', value: "ops"],
-                                [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
-                                [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
-                        ]
-                    }
-                })
+    if (deploy) {
+        
+        node {
+            properties([
+                    disableConcurrentBuilds()
             ])
+
+            stage('Deploy') {
+
+                customParallel([
+                        step('Deploy to Ref', isRefBuild(), {
+
+                            dir('deployment') {
+
+                                build job: 'Deploy', parameters: [
+                                        [$class: 'StringParameterValue', name: 'environment', value: "ref"],
+                                        [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
+                                        [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
+                                ]
+                            }
+                        }),
+                        step('Deploy to Ops', isOpsBuild(), {
+
+                            dir('deployment') {
+
+                                build job: 'Deploy', parameters: [
+                                        [$class: 'StringParameterValue', name: 'environment', value: "ops"],
+                                        [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
+                                        [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
+                                ]
+                            }
+                        })
+                ])
+            }
         }
     }
 }
