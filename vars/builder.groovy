@@ -228,7 +228,7 @@ def call(Map pipelineParams) {
         stage('Push Project Updates', isSpecialBuild() && !IS_BUMP_COMMIT, {
 
             customParallel([
-                    step('Push docker image') {
+                    step('Push docker image', true, {
 
                         dir('project') {
                             script {
@@ -237,8 +237,8 @@ def call(Map pipelineParams) {
                                 }
                             }
                         }
-                    },
-                    step('Push project update') {
+                    }),
+                    step('Push project update', true, {
 
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
@@ -246,7 +246,7 @@ def call(Map pipelineParams) {
                                 sh "git push origin ${DOCKER_TAG_VERSION}"
                             }
                         }
-                    }
+                    })
             ])
         })
     }
