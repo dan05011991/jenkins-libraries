@@ -342,10 +342,12 @@ def call(Map pipelineParams) {
                             url: "${SOURCE_URL}",
                             credentialsId: 'ssh'
                     )
+
+                    sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
+                    sh "git push origin release/release-${DOCKER_TAG_VERSION}"
                 }
 
-                sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
-                sh "git push origin release/release-${DOCKER_TAG_VERSION}"
+
             }
         }
     }
