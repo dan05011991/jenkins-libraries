@@ -343,8 +343,8 @@ def call(Map pipelineParams) {
                             credentialsId: 'ssh'
                     )
 
-                    sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
-                    sh "git push origin release/release-${DOCKER_TAG_VERSION}"
+                    //sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
+                    //sh "git push origin release/release-${DOCKER_TAG_VERSION}"
                 }
 
 
