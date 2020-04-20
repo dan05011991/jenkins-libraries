@@ -333,15 +333,17 @@ def call(Map pipelineParams) {
 
                 dir('project') {
                     script {
-                        echo "Commit: ${SOURCE_COMMIT}"
+                        echo "Commit: ${SOURCE_BRANCH}"
                         echo "Docker: ${DOCKER_TAG_VERSION}"
                     }
 
                     git(
-                            branch: "${SOURCE_COMMIT}",
+                            branch: "${SOURCE_BRANCH}",
                             url: "${SOURCE_URL}",
                             credentialsId: 'ssh'
                     )
+
+                    sh "git checkout ${SOURCE_COMMIT}"
 
                     //sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
                     //sh "git push origin release/release-${DOCKER_TAG_VERSION}"
