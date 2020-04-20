@@ -1,3 +1,4 @@
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def lastCommitIsBumpCommit() {
     lastCommit = sh([script: 'git log -1', returnStdout: true])
@@ -22,136 +23,112 @@ def createScript(scriptName) {
     sh "chmod +x ${scriptName}"
 }
 
+def stage(name, execute, block) {
+    return stage(name, execute ? block : {
+        echo "skipped stage $name"
+        Utils.markStageSkippedForConditional(name)
+    })
+}
+
+def step(name, execute, block) {
+    return [
+            'name': name,
+            'value': execute ? block : {
+                echo "skipped stage $name"
+                Utils.markStageSkippedForConditional(name)
+            }
+    ]
+}
+
+def customParallel(steps) {
+    def map = [:]
+
+    steps.each { step ->
+        map.put(step.name, step.value)
+    }
+
+    parallel(map)
+}
+
 def call(Map pipelineParams) {
-    pipeline {
-        agent any
 
-        environment {
-            SOURCE_BRANCH = "${BRANCH_NAME}"
-            SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
-            IS_BUMP_COMMIT = false
-            DOCKER_TAG_VERSION = 'EXAMPLE'
-            PROJECT_DIR = ''
-            DEPLOYMENT_DIR = ''
+    def String SOURCE_BRANCH = "${BRANCH_NAME}"
+    def String SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
+    def String IS_BUMP_COMMIT = false
+    def String DOCKER_TAG_VERSION = 'EXAMPLE'
+    def String PROJECT_DIR = ''
+    def String DEPLOYMENT_DIR = ''
+
+    node {
+        properties([
+                disableConcurrentBuilds()
+        ])
+
+        stage('Pipeline setup') {
+
+            customParallel([
+                    step('Checkout Project', true, {
+
+                        dir('project') {
+
+                            git(
+                                    branch: "${SOURCE_BRANCH}",
+                                    url: "${SOURCE_URL}",
+                                    credentialsId: 'ssh'
+                            )
+
+                            script {
+                                PROJECT_DIR = pwd()
+                                IS_BUMP_COMMIT = lastCommitIsBumpCommit()
+                            }
+                        }
+                    }),
+                    step('Checkout Deployment', isOpsBuild() || isRefBuild(), {
+
+                        dir('deployment') {
+                            git(
+                                    branch: "${SOURCE_BRANCH}",
+                                    url: "${pipelineParams.deploymentRepo}",
+                                    credentialsId: 'ssh'
+                            )
+
+                            script {
+                                DEPLOYMENT_DIR = pwd()
+                            }
+                        }
+                    }),
+                    step('Create pipeline scripts', true, {
+
+                        dir('project') {
+
+                            script {
+                                createScript('increment_version.sh')
+                            }
+                        }
+                    })
+            ])
         }
 
-        options {
-            disableConcurrentBuilds()
-            skipDefaultCheckout()
-        }
+        stage('Is Bump Commit?', isOpsBuild() && isRefBuild(), {
 
-        stages {
+            echo "This is a bump commit build - exiting early"
 
-            stage('Pipeline setup') {
-
-                parallel {
-
-                    stage('Checkout Project') {
-                        steps {
-
-                            dir('project') {
-
-                                git(
-                                        branch: "${env.SOURCE_BRANCH}",
-                                        url: "${env.SOURCE_URL}",
-                                        credentialsId: 'ssh'
-                                )
-
-
-
-                                script {
-                                    PROJECT_DIR = pwd()
-                                    IS_BUMP_COMMIT = lastCommitIsBumpCommit()
-                                }
-                            }
-                        }
-                    }
-
-                    stage('Checkout Deployment') {
-
-                        when {
-                            expression {
-                                isOpsBuild() || isRefBuild()
-                            }
-                        }
-
-                        steps {
-
-                            dir('deployment') {
-                                git(
-                                        branch: "${env.SOURCE_BRANCH}",
-                                        url: "${pipelineParams.deploymentRepo}",
-                                        credentialsId: 'ssh'
-                                )
-
-                                script {
-                                    DEPLOYMENT_DIR = pwd()
-                                }
-                            }
-                        }
-                    }
-
-                    stage('Create pipeline scripts') {
-
-                        steps {
-
-                            dir('project') {
-
-                                script {
-                                    createScript('increment_version.sh')
-                                }
-                            }
-                        }
-                    }
-                }
+            script {
+                currentBuild.result = currentBuild.getPreviousBuild().result
             }
+        })
 
-            stage('Is Bump Commit?') {
+        stage('CI Build & Test', !isOpsBuild() && !isRefBuild(), {
 
-                when {
-                    expression {
-                        isOpsBuild() && isRefBuild()
-                    }
-                }
+            def String unique_Id = UUID.randomUUID().toString()
 
+            customParallel([
+                    stage('Maven', pipelineParams.buildType == 'maven', {
 
-                steps {
-                    echo "This is a bump commit build - exiting early"
-
-                    script {
-                        currentBuild.result = currentBuild.getPreviousBuild().result
-                    }
-                }
-            }
-
-            stage('CI Build & Test') {
-
-                when {
-                    expression {
-                        !isOpsBuild() && !isRefBuild()
-                    }
-                }
-
-                environment {
-                    unique_Id = UUID.randomUUID().toString()
-                }
-
-                parallel {
-
-                    stage('Maven') {
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'maven'
-                            }
-                        }
-
-                        steps {
-                            dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
-                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/target/surefire-reports ."
-                            }
+                        dir("$PROJECT_DIR") {
+                            sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
+                            sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
+                            sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/target/surefire-reports ."
                         }
 
                         post {
@@ -164,22 +141,13 @@ def call(Map pipelineParams) {
                                 sh "docker rmi ${unique_Id}"
                             }
                         }
-                    }
+                    }),
+                    stage('Gulp', pipelineParams.buildType == 'gulp', {
 
-                    stage('Gulp') {
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'gulp'
-                            }
-                        }
-
-                        steps {
-                            dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
-                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
-                            }
+                        dir("$PROJECT_DIR") {
+                            sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
+                            sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
+                            sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
                         }
 
                         post {
@@ -192,281 +160,189 @@ def call(Map pipelineParams) {
                                 sh "docker rmi ${unique_Id}"
                             }
                         }
-                    }
-                }
-            }
+                    })
+            ])
+        })
 
-            stage('Update project version') {
+        stage('Update project version', isRefBuild() && !IS_BUMP_COMMIT, {
 
-                when {
-                    expression {
-                        isRefBuild() && !IS_BUMP_COMMIT
-                    }
-                }
+            customParallel([
 
-                parallel {
+                    stage('Maven', pipelineParams.buildType == 'maven', {
 
-                    stage('Maven') {
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'maven'
-                            }
+                        dir('project') {
+                            sh 'mvn release:update-versions -B'
+                            sh 'git add pom.xml'
+                            sh 'git commit -m "[Automated commit: version bump]"'
                         }
-
-                        steps {
-
-                            dir('project') {
-                                sh 'mvn release:update-versions -B'
-                                sh 'git add pom.xml'
-                                sh 'git commit -m "[Automated commit: version bump]"'
-                            }
-
-                        }
-                    }
-
-                    stage('Gulp') {
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'gulp'
-                            }
-                        }
-
-                        steps {
-
-                            script {
-
-                                dir('project') {
-
-
-
-                                    UI_VERSION = sh(
-                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
-                                            returnStdout: true
-                                    )
-
-                                    DOCKER_TAG_VERSION = sh(
-                                            script: "./increment_version.sh ${UI_VERSION}",
-                                            returnStdout: true
-                                    ).trim()
-
-                                    sh("""
-                                        #!/bin/bash
-                                        sed -i "s/appVersion: '${UI_VERSION}'/appVersion: '${DOCKER_TAG_VERSION}'/g" conf/config-release.js
-                                    """)
-
-                                    sh 'git add conf/config-release.js'
-                                    sh 'git commit -m "[Automated commit: version bump]"'
-                                }
-                            }
-                        }
-
-                    }
-                }
-            }
-
-            stage('Get deployment version') {
-
-                when {
-                    expression {
-                        isOpsBuild() || isRefBuild()
-                    }
-                }
-
-                parallel {
-
-                    stage('Maven') {
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'maven'
-                            }
-                        }
-
-                        steps {
-
-                            dir('project') {
-                                script {
-                                    DOCKER_TAG_VERSION = sh(
-                                            script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                            returnStdout: true
-                                    ).trim()
-                                }
-                            }
-                        }
-                    }
-
-                    stage('Gulp') {
-
-                        when {
-                            expression {
-                                pipelineParams.buildType == 'gulp'
-                            }
-                        }
-
-                        steps {
-
-                            script {
-
-                                dir('project') {
-                                    DOCKER_TAG_VERSION = sh(
-                                            script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
-                                            returnStdout: true
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            stage('Update compose version') {
-
-                when {
-                    expression {
-                        isOpsBuild() || isRefBuild()
-                    }
-                }
-
-                steps {
-
-                    dir('deployment') {
-
-                        sshagent(credentials: ['ssh']) {
-                            sh """
-                        IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
-                        COMPOSE_FILE=docker-compose.yaml
-                        SNAPSHOT=${DOCKER_TAG_VERSION}
-                
-                        sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
-                        
-                        if [ \$(git diff | wc -l) -gt 0 ]; then
-                            git add docker-compose.yaml
-                            git commit -m "[Automated commit: version bump]"
-                        fi
-
-                    """
-                        }
-                    }
-                }
-            }
-
-            stage('Docker build and tag') {
-
-                when {
-                    expression {
-                        isRefBuild() && !IS_BUMP_COMMIT
-                    }
-                }
-
-                steps {
-
-                    dir('project') {
+                    }),
+                    stage('Gulp', pipelineParams.buildType == 'gulp', {
 
                         script {
-                            sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+
+                            dir('project') {
+
+                                UI_VERSION = sh(
+                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
+                                        returnStdout: true
+                                )
+
+                                DOCKER_TAG_VERSION = sh(
+                                        script: "./increment_version.sh ${UI_VERSION}",
+                                        returnStdout: true
+                                ).trim()
+
+                                sh("""
+                                #!/bin/bash
+                                sed -i "s/appVersion: '${UI_VERSION}'/appVersion: '${DOCKER_TAG_VERSION}'/g" conf/config-release.js
+                            """)
+
+                                sh 'git add conf/config-release.js'
+                                sh 'git commit -m "[Automated commit: version bump]"'
+                            }
                         }
+                    })
+            ])
+        })
+
+        stage('Get deployment version', isOpsBuild() || isRefBuild(), {
+
+            customParallel([
+
+                    step('Maven', pipelineParams.buildType == 'maven', {
+
+                        dir('project') {
+                            script {
+                                DOCKER_TAG_VERSION = sh(
+                                        script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                        returnStdout: true
+                                ).trim()
+                            }
+                        }
+                    }),
+                    step('Gulp', pipelineParams.buildType == 'gulp', {
+
+                        script {
+
+                            dir('project') {
+                                DOCKER_TAG_VERSION = sh(
+                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
+                                        returnStdout: true
+                                )
+                            }
+                        }
+                    })
+            ])
+        })
+
+        stage('Docker build and tag', isRefBuild() && !IS_BUMP_COMMIT, {
+
+            dir('project') {
+
+                script {
+                    sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                }
+            }
+        })
+
+        stage('Push Project Updates', isRefBuild() && !IS_BUMP_COMMIT, {
+
+            customParallel([
+                    step('Push docker image') {
+
+                        dir('project') {
+                            script {
+                                withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
+                                    sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                }
+                            }
+                        }
+                    },
+                    step('Push project update') {
+
+                        dir('project') {
+                            sshagent(credentials: ['ssh']) {
+                                sh "git push origin ${SOURCE_BRANCH}"
+                            }
+                        }
+                    }
+            ])
+        })
+
+        stage('Update compose version', isOpsBuild() || isRefBuild(), {
+
+            stage('Update file') {
+
+                dir('deployment') {
+
+                    sshagent(credentials: ['ssh']) {
+                        sh """
+                            IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
+                            COMPOSE_FILE=docker-compose.yaml
+                            SNAPSHOT=${DOCKER_TAG_VERSION}
+                    
+                            sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
+                            
+                            if [ \$(git diff | wc -l) -gt 0 ]; then
+                                git add docker-compose.yaml
+                                git commit -m "[Automated commit: version bump]"
+                            fi
+            
+                        """
                     }
                 }
             }
 
-            stage('Push Project Updates') {
-
-                when {
-                    expression {
-                        isRefBuild() && !IS_BUMP_COMMIT
-                    }
-                }
-
-                parallel {
-                    stage('Push docker image') {
-
-                        steps {
-                            dir('project') {
-                                script {
-                                    withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
-                                        sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    stage('Push project update') {
-
-                        steps {
-                            dir('project') {
-                                sshagent(credentials: ['ssh']) {
-                                    sh "git push origin ${SOURCE_BRANCH}"
-                                }
-                            }
-                        }
+            stage('Push File') {
+                dir('deployment') {
+                    sshagent(credentials: ['ssh']) {
+                        sh "git push origin ${SOURCE_BRANCH}"
                     }
                 }
             }
+        })
+    }
 
-            stage('Push compose update') {
+    // Input Step
+    timeout(time: 15, unit: "MINUTES") {
+        input(
+                message: "Do you want to deploy and release ${DOCKER_TAG_VERSION}",
+                ok: 'Yes',
+                submitter: 'john'
+        )
+    }
 
-                when {
-                    expression {
-                        (isOpsBuild() || isRefBuild()) && !IS_BUMP_COMMIT
-                    }
-                }
+    node {
+        properties([
+                disableConcurrentBuilds()
+        ])
 
-                steps {
+        stage('Deploy') {
+
+            customParallel([
+                step('Deploy to Ref', isRefBuild(), {
+
                     dir('deployment') {
-                        sshagent(credentials: ['ssh']) {
-                            sh "git push origin ${SOURCE_BRANCH}"
-                        }
+
+                        build job: 'Deploy', parameters: [
+                                [$class: 'StringParameterValue', name: 'environment', value: "ref"],
+                                [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
+                                [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
+                        ]
                     }
-                }
-            }
+                }),
+                step('Deploy to Ops', isOpsBuild(), {
 
-            stage('Deploy') {
-                parallel {
-                    stage('Deploy to Ref') {
+                    dir('deployment') {
 
-                        when {
-                            expression {
-                                isRefBuild()
-                            }
-                        }
-
-                        steps {
-                            dir('deployment') {
-
-                                build job: 'Deploy', parameters: [
-                                        [$class: 'StringParameterValue', name: 'environment', value: "ref"],
-                                        [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
-                                        [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
-                                ]
-                            }
-                        }
+                        build job: 'Deploy', parameters: [
+                                [$class: 'StringParameterValue', name: 'environment', value: "ops"],
+                                [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
+                                [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
+                        ]
                     }
-
-
-                    stage('Deploy to Ops') {
-
-                        when {
-                            expression {
-                                isOpsBuild()
-                            }
-                        }
-
-                        steps {
-                            dir('deployment') {
-
-                                build job: 'Deploy', parameters: [
-                                        [$class: 'StringParameterValue', name: 'environment', value: "ops"],
-                                        [$class: 'StringParameterValue', name: 'repo', value: "${pipelineParams.deploymentRepo}"],
-                                        [$class: 'StringParameterValue', name: 'branch', value: "${SOURCE_BRANCH}"]
-                                ]
-                            }
-                        }
-                    }
-                }
-            }
+                })
+            ])
         }
     }
 }
