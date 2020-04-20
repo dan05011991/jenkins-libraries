@@ -327,17 +327,19 @@ def call(Map pipelineParams) {
             echo("Input : ${createRelease}")
         }
 
-        stage('Create Release') {
-            def String unique_Id = UUID.randomUUID().toString()
+        node {
+            stage('Create Release') {
+                def String unique_Id = UUID.randomUUID().toString()
 
-            git(
-                    branch: "${SOURCE_COMMIT}",
-                    url: "${SOURCE_URL}",
-                    credentialsId: 'ssh'
-            )
+                git(
+                        branch: "${SOURCE_COMMIT}",
+                        url: "${SOURCE_URL}",
+                        credentialsId: 'ssh'
+                )
 
-            sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
-            sh "git push origin release/release-${DOCKER_TAG_VERSION}"
+                sh "git checkout -b release/release-${DOCKER_TAG_VERSION}"
+                sh "git push origin release/release-${DOCKER_TAG_VERSION}"
+            }
         }
     }
 
