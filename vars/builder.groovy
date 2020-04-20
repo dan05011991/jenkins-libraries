@@ -303,10 +303,12 @@ def call(Map pipelineParams) {
         })
     }
 
+    def Boolean createRelease = false
+
     if(isRefBuild()) {
         // Input Step
         timeout(time: 15, unit: "MINUTES") {
-            def userInput = input(
+            createRelease = input(
                     message: "Do you want to create a release from this branch",
                     ok: 'Submit',
                     parameters: [
@@ -318,7 +320,7 @@ def call(Map pipelineParams) {
                     ],
                     submitter: 'john'
             )
-            echo("Input : ${userInput}")
+            echo("Input : ${createRelease}")
         }
     }
 
