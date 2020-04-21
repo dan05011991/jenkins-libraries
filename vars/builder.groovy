@@ -23,6 +23,9 @@ def call(Map pipelineParams) {
         ])
 
         stage('Clean') {
+
+            cleanWs()
+            
             dir('project') {
                 deleteDir()
             }
@@ -61,20 +64,6 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-//                    step('Checkout Deployment', isSpecialBuild(), {
-//
-//                        dir('deployment') {
-//                            git(
-//                                    branch: "${SOURCE_BRANCH}",
-//                                    url: "${pipelineParams.deploymentRepo}",
-//                                    credentialsId: 'ssh'
-//                            )
-//
-//                            script {
-//                                DEPLOYMENT_DIR = pwd()
-//                            }
-//                        }
-//                    }),
                     step('Create pipeline scripts', true, {
 
                         dir('project') {
@@ -88,12 +77,7 @@ def call(Map pipelineParams) {
         }
 
         stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
-
             echo "This is a bump commit build - exiting early"
-
-            // script {
-            //     currentBuild.result = currentBuild.getPreviousBuild().result
-            // }
         })
 
         stage('CI Build & Test', !isOpsBuild() && !isRefBuild(), {
@@ -182,36 +166,6 @@ def call(Map pipelineParams) {
                     })
             ])
         })
-
-        // stage('Get deployment version', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
-
-        //     customParallel([
-
-        //             step('Maven', pipelineParams.buildType == 'maven', {
-
-        //                 dir('project') {
-        //                     script {
-        //                         PROJECT_VERSION = sh(
-        //                                 script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-        //                                 returnStdout: true
-        //                         ).trim()
-        //                     }
-        //                 }
-        //             }),
-        //             step('Gulp', pipelineParams.buildType == 'gulp', {
-
-        //                 script {
-
-        //                     dir('project') {
-        //                         PROJECT_VERSION = sh(
-        //                                 script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
-        //                                 returnStdout: true
-        //                         )
-        //                     }
-        //                 }
-        //             })
-        //     ])
-        // })
 
         stage('Docker', isSpecialBuild(), {
 
