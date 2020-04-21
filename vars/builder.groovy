@@ -210,7 +210,7 @@ def call(Map pipelineParams) {
 
                     DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
                 }
-            }
+            })
 
             stage('Building & Re-tagging', true, {
                 customParallel([
