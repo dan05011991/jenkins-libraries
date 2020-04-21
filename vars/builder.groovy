@@ -34,20 +34,16 @@ def call(Map pipelineParams) {
             dir('deployment') {
                 deleteDir()
             }
+
+            SOURCE_BRANCH = "${BRANCH_NAME}"
+            SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
+            IS_BUMP_COMMIT = false
+            SHOULD_PUSH_DOCKER = false
+            IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
+            DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
         }
 
         stage('Pipeline setup') {
-
-            stage('Setup') {
-                script {
-                    SOURCE_BRANCH = "${BRANCH_NAME}"
-                    SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
-                    IS_BUMP_COMMIT = false
-                    SHOULD_PUSH_DOCKER = false
-                    IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
-                    DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
-                }
-            }
 
             customParallel([
                     step('Checkout Project', true, {
