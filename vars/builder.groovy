@@ -250,8 +250,12 @@ def call(Map pipelineParams) {
         })
 
         stage('Prepare project for next iteration', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
-            customParallel([
 
+            stage('Tag git release', isRefBuild(), {
+                sh "git tag -a ${PROJECT_VERSION} -m \"Release ${PROJECT_VERSION}\""
+            })
+
+            customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
