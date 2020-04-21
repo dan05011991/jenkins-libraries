@@ -13,9 +13,6 @@ def call(Map pipelineParams) {
     def String PROJECT_DIR
     def String DEPLOYMENT_DIR
 
-    def Boolean DID_LAST_BUILD_ERROR
-    def Boolean IS_FIRST_BUILD
-
     def Boolean SHOULD_PUSH_DOCKER
 
     node {
@@ -39,8 +36,6 @@ def call(Map pipelineParams) {
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = false
             SHOULD_PUSH_DOCKER = false
-            IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
-            DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
         }
 
         stage('Pipeline setup') {
