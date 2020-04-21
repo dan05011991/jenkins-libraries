@@ -314,8 +314,6 @@ def getReferenceTag(version) {
 }
 
 def lastCommitIsBumpCommit() {
-    sh 'pwd'
-    sh 'ls'
     lastCommit = sh([script: 'git log -1', returnStdout: true])
     if (lastCommit.contains("[Automated commit: version bump]")) {
         return true
