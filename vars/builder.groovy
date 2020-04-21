@@ -249,7 +249,7 @@ def call(Map pipelineParams) {
                             }
                         })
                 ])
-            }
+            })
         })
 
         stage('Prepare project for next iteration', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
