@@ -2,15 +2,16 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def call(Map pipelineParams) {
 
-    def String SOURCE_BRANCH = "${BRANCH_NAME}"
-    def String SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
+    def String SOURCE_BRANCH
+    def String SOURCE_URL
 
-    def Boolean IS_BUMP_COMMIT = false
-    def String DOCKER_TAG_VERSION = 'EXAMPLE'
-    def String PROJECT_VERSION = 'EXAMPLE'
+    def Boolean IS_BUMP_COMMIT
 
-    def String PROJECT_DIR = ''
-    def String DEPLOYMENT_DIR = ''
+    def String DOCKER_TAG_VERSION
+    def String PROJECT_VERSION
+
+    def String PROJECT_DIR
+    def String DEPLOYMENT_DIR
 
     def Boolean DID_LAST_BUILD_ERROR
     def Boolean IS_FIRST_BUILD
@@ -31,6 +32,16 @@ def call(Map pipelineParams) {
         }
 
         stage('Pipeline setup') {
+
+            stage('Setup') {
+                script {
+                    SOURCE_BRANCH = "${BRANCH_NAME}"
+                    SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
+                    IS_BUMP_COMMIT = false
+                    IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
+                    DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
+                }
+            }
 
             customParallel([
                     step('Checkout Project', true, {
@@ -68,8 +79,6 @@ def call(Map pipelineParams) {
                         dir('project') {
 
                             script {
-                                IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
-                                DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
                                 createScript('increment_version.sh')
                             }
                         }
@@ -118,7 +127,7 @@ def call(Map pipelineParams) {
                             }
                         } finally {
                             dir("$PROJECT_DIR") {
-                                junit 'junit//**/*.xml'
+                                junit 'junit/**/*.xml'
                             }
 
                             sh "docker rm -f ${unique_Id}"
@@ -136,8 +145,12 @@ def call(Map pipelineParams) {
                         dir('project') {
                             sh 'mvn versions:set -DremoveSnapshot'
                             sh 'git add pom.xml'
-                            sh 'git commit -m "[Automated commit: version bump]"'
+                            sh 'git commit -m "[Automated commit: Project released]"'
 
+                            PROJECT_VERSION = sh(
+                                script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+                                returnStdout: true
+                            ).trim()
                         }
                     }),
                     step('Gulp', pipelineParams.buildType == 'gulp', {
@@ -162,44 +175,44 @@ def call(Map pipelineParams) {
                                 """)
 
                                 sh 'git add conf/config-release.js'
-                                sh 'git commit -m "[Automated commit: version bump]"'
+                                sh 'git commit -m "[Automated commit: Project released]"'
                             }
                         }
                     })
             ])
         })
 
-        stage('Get deployment version', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
+        // stage('Get deployment version', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
 
-            customParallel([
+        //     customParallel([
 
-                    step('Maven', pipelineParams.buildType == 'maven', {
+        //             step('Maven', pipelineParams.buildType == 'maven', {
 
-                        dir('project') {
-                            script {
-                                PROJECT_VERSION = sh(
-                                        script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
-                                        returnStdout: true
-                                ).trim()
-                            }
-                        }
-                    }),
-                    step('Gulp', pipelineParams.buildType == 'gulp', {
+        //                 dir('project') {
+        //                     script {
+        //                         PROJECT_VERSION = sh(
+        //                                 script: 'mvn -q -Dexec.executable=echo -Dexec.args=\'${project.version}\' --non-recursive exec:exec',
+        //                                 returnStdout: true
+        //                         ).trim()
+        //                     }
+        //                 }
+        //             }),
+        //             step('Gulp', pipelineParams.buildType == 'gulp', {
 
-                        script {
+        //                 script {
 
-                            dir('project') {
-                                PROJECT_VERSION = sh(
-                                        script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
-                                        returnStdout: true
-                                )
-                            }
-                        }
-                    })
-            ])
-        })
+        //                     dir('project') {
+        //                         PROJECT_VERSION = sh(
+        //                                 script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
+        //                                 returnStdout: true
+        //                         )
+        //                     }
+        //                 }
+        //             })
+        //     ])
+        // })
 
-        stage('Docker', isSpecialBuild(), {
+        stage('Docker Release', isSpecialBuild(), {
 
             stage('Get Tag', isOpsBuild() || isReleaseBuild(), {    
                 dir('project') {
