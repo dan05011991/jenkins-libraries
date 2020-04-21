@@ -201,7 +201,7 @@ def call(Map pipelineParams) {
 
         stage('Docker', isSpecialBuild(), {
 
-            stage('Get Tag', isSpecialBuild {    
+            stage('Get Tag', isSpecialBuild(), {    
                 dir('project') {
                     PROJECT_VERSION = sh([
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
