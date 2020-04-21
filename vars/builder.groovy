@@ -81,9 +81,9 @@ def call(Map pipelineParams) {
 
             echo "This is a bump commit build - exiting early"
 
-            script {
-                currentBuild.result = currentBuild.getPreviousBuild().result
-            }
+            // script {
+            //     currentBuild.result = currentBuild.getPreviousBuild().result
+            // }
         })
 
         stage('CI Build & Test', !isOpsBuild() && !isRefBuild(), {
