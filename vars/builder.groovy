@@ -88,40 +88,36 @@ def call(Map pipelineParams) {
             customParallel([
                     stage('Maven', pipelineParams.buildType == 'maven', {
 
-                        dir("$PROJECT_DIR") {
-                            sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                            sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
-                            sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/target/surefire-reports ."
-                        }
-
-                        post {
-                            always {
-                                dir("$PROJECT_DIR") {
-                                    junit 'surefire-reports/**/*.xml'
-                                }
-
-                                sh "docker rm -f ${unique_Id}"
-                                sh "docker rmi ${unique_Id}"
+                        try {
+                            dir("$PROJECT_DIR") {
+                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
+                                sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
+                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/target/surefire-reports ."
                             }
+                        } finally {
+                            dir("$PROJECT_DIR") {
+                                junit 'surefire-reports/**/*.xml'
+                            }
+
+                            sh "docker rm -f ${unique_Id}"
+                            sh "docker rmi ${unique_Id}"
                         }
                     }),
                     stage('Gulp', pipelineParams.buildType == 'gulp', {
 
-                        dir("$PROJECT_DIR") {
-                            sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                            sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
-                            sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
-                        }
-
-                        post {
-                            always {
-                                dir("$PROJECT_DIR") {
-                                    junit 'junit//**/*.xml'
-                                }
-
-                                sh "docker rm -f ${unique_Id}"
-                                sh "docker rmi ${unique_Id}"
+                        try {
+                            dir("$PROJECT_DIR") {
+                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
+                                sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
+                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
                             }
+                        } finally {
+                            dir("$PROJECT_DIR") {
+                                junit 'junit//**/*.xml'
+                            }
+
+                            sh "docker rm -f ${unique_Id}"
+                            sh "docker rmi ${unique_Id}"
                         }
                     })
             ])
