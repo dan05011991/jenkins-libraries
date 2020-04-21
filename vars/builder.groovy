@@ -46,7 +46,7 @@ def call(Map pipelineParams) {
         stage('Pipeline setup') {
 
             customParallel([
-                    step('Checkout Project', true, {
+                    step('Checkout Project', {
 
                         dir('project') {
 
@@ -62,7 +62,7 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Create pipeline scripts', true, {
+                    step('Create pipeline scripts', {
 
                         dir('project') {
 
@@ -322,6 +322,10 @@ def stage(name, execute, block) {
         echo "skipped stage $name"
         Utils.markStageSkippedForConditional(name)
     })
+}
+
+def step(name, block) {
+    return step(name, true, block)
 }
 
 def step(name, execute, block) {
