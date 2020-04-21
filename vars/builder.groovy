@@ -284,7 +284,7 @@ def call(Map pipelineParams) {
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
                                 sh "git push origin ${SOURCE_BRANCH}"
-                                sh "git push origin ${DOCKER_TAG_VERSION}"
+                                sh "git push origin ${PROJECT_VERSION}"
                             }
                         }
                     })
