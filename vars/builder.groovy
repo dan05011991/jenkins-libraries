@@ -220,6 +220,7 @@ def call(Map pipelineParams) {
                                 script {
                                     if(!doesTagExist(DOCKER_TAG_VERSION)) {
                                         sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                        pushTag = true
                                     }
                                     referenceTag = getReferenceTag(PROJECT_VERSION)
                                     sh "docker pull ${pipelineParams.imageName}${referenceTag}"
@@ -232,6 +233,7 @@ def call(Map pipelineParams) {
                                 script {
                                     if(!doesTagExist(DOCKER_TAG_VERSION)) {
                                         sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                        pushTag = true
                                     }
 
                                     if(!IS_BUMP_COMMIT) {
@@ -284,12 +286,15 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Push project update', !IS_BUMP_COMMIT, {
+                    step('Push project update', true, {
 
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
                                 sh "git push origin ${SOURCE_BRANCH}"
-                                sh "git push origin ${DOCKER_TAG_VERSION}"
+
+                                if(pushTag) {
+                                    sh "git push origin ${DOCKER_TAG_VERSION}"
+                                }
                             }
                         }
                     })
