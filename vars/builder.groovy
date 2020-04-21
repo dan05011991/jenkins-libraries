@@ -218,10 +218,6 @@ def call(Map pipelineParams) {
                         step('Master Branch', isOpsBuild(), {
                             dir('project') {
                                 script {
-                                    if(!doesTagExist(DOCKER_TAG_VERSION)) {
-                                        sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
-                                        pushTag = true
-                                    }
                                     referenceTag = getReferenceTag(PROJECT_VERSION)
                                     sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                                     sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
@@ -231,11 +227,6 @@ def call(Map pipelineParams) {
                         step('Release Branch', isReleaseBuild(), {
                             dir('project') {
                                 script {
-                                    if(!doesTagExist(DOCKER_TAG_VERSION)) {
-                                        sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
-                                        pushTag = true
-                                    }
-
                                     if(!IS_BUMP_COMMIT) {
                                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     } else {
@@ -286,15 +277,12 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Push project update', true, {
+                    step('Push project update', !IS_BUMP_COMMIT, {
 
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
                                 sh "git push origin ${SOURCE_BRANCH}"
-
-                                if(pushTag) {
-                                    sh "git push origin ${DOCKER_TAG_VERSION}"
-                                }
+                                sh "git push origin ${DOCKER_TAG_VERSION}"
                             }
                         }
                     })
