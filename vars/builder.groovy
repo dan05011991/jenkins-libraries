@@ -201,29 +201,21 @@ def call(Map pipelineParams) {
 
         stage('Docker', isSpecialBuild(), {
 
-            stage('Get Tag') {
-                customParallel([
+            stage('Get Tag', isSpecialBuild {    
+                dir('project') {
+                    PROJECT_VERSION = sh([
+                            script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
+                            returnStdout: true
+                    ]).trim()
 
-                        step('Master and Release Branches', isOpsBuild() || isReleaseBuild(), {
-                            dir('project') {
-                                PROJECT_VERSION = sh([
-                                        script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
-                                        returnStdout: true
-                                ]).trim()
-
-                                DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
-                            }
-                        }),
-                        step('Develop Branch', isRefBuild(), {
-                            DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
-                        })
-                ])
+                    DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
+                }
             }
 
             stage('Building & Re-tagging') {
                 customParallel([
 
-                        step('Master Branch', isOpsBuild(), {
+                        step('Master Branch', isOpsBuild() || isReleaseBuild(), {
                             dir('project') {
                                 script {
                                     sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
@@ -240,6 +232,10 @@ def call(Map pipelineParams) {
 
                                     if(!IS_BUMP_COMMIT || (DID_LAST_BUILD_ERROR || IS_FIRST_BUILD) ) {
                                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                    } else {
+                                        referenceTag = getReferenceTag()
+                                        sh "docker pull ${pipelineParams.imageName}${referenceTag}"
+                                        sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     }
 
                                 }
@@ -296,6 +292,10 @@ def call(Map pipelineParams) {
             ])
         })
     }
+}
+
+def tag(tag) {
+
 }
 
 def getDockerTag(version) {
