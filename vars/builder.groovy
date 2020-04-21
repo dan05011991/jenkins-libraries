@@ -301,7 +301,7 @@ def call(Map pipelineParams) {
 def doesTagExist(tag) {
     exists = sh(
         script: """
-        if [ $(git tag -l "$tag") ]; then 
+        if [ \$(git tag -l \"$tag\") ]; then 
             echo \"yes\"
         fi
     """,
