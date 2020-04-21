@@ -167,7 +167,9 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Docker', isSpecialBuild(), {
+        
+
+        stage('Docker Building & Re-tagging', isSpecialBuild(), {
 
             stage('Get missing tag', (isReleaseBuild() || isOpsBuild()) && StringUtils.isBlank(PROJECT_VERSION), {  
                 dir('project') {
@@ -178,27 +180,22 @@ def call(Map pipelineParams) {
                 }
             }) 
 
-            stage('Building & Re-tagging', true, {
+            DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
-                stage('Generate Docker Tag') {
-                    DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
-                }
-
-                customParallel([
-                    step('Build Docker Image', (isReleaseBuild() || isRefBuild()) && !IS_BUMP_COMMIT, {
-                        dir('project') {
-                            sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        }
-                    }),
-                    step('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
-                        if(!doesDockerImageExist(pipelineParams.imageName + DOCKER_TAG_VERSION)) {
-                            referenceTag = getReferenceTag(PROJECT_VERSION)
-                            sh "docker pull ${pipelineParams.imageName}${referenceTag}"
-                            sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        }
-                    })
-                ])
-            })
+            customParallel([
+                step('Build Docker Image', (isReleaseBuild() || isRefBuild()) && !IS_BUMP_COMMIT, {
+                    dir('project') {
+                        sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                    }
+                }),
+                step('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
+                    if(!doesDockerImageExist(pipelineParams.imageName + DOCKER_TAG_VERSION)) {
+                        referenceTag = getReferenceTag(PROJECT_VERSION)
+                        sh "docker pull ${pipelineParams.imageName}${referenceTag}"
+                        sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                    }
+                })
+            ])
         })
 
         stage('Prepare project for next iteration', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
