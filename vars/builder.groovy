@@ -186,6 +186,7 @@ def call(Map pipelineParams) {
                 step('Build Docker Image', (isReleaseBuild() || isRefBuild()) && !IS_BUMP_COMMIT, {
                     dir('project') {
                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                        pushDockerImage = true
                     }
                 }),
                 step('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
@@ -193,6 +194,7 @@ def call(Map pipelineParams) {
                         referenceTag = getReferenceTag(PROJECT_VERSION)
                         sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                         sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                        pushDockerImage = true
                     }
                 })
             ])
@@ -222,7 +224,7 @@ def call(Map pipelineParams) {
         stage('Push Project Updates', isSpecialBuild(), {
 
             customParallel([
-                    step('Push docker image', true, {
+                    step('Push docker image', pushDockerImage, {
 
                         dir('project') {
                             script {
