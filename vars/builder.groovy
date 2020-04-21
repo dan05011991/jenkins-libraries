@@ -279,6 +279,7 @@ def getDockerTag(version) {
     } else if(isReleaseBuild()) {
         return version + '-release-candidate'
     }
+    throw new Exception("Invalid use of this function")
 }
 
 def getReferenceTag(version) {
