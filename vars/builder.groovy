@@ -218,7 +218,9 @@ def call(Map pipelineParams) {
                         step('Master Branch', isOpsBuild() || isReleaseBuild(), {
                             dir('project') {
                                 script {
-                                    sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                    if(!doesTagExist(DOCKER_TAG_VERSION)) {
+                                        sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                    }
                                     referenceTag = getReferenceTag()
                                     sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                                     sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
@@ -228,9 +230,11 @@ def call(Map pipelineParams) {
                         step('Release Branch', isReleaseBuild(), {
                             dir('project') {
                                 script {
-                                    sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                    if(!doesTagExist(DOCKER_TAG_VERSION)) {
+                                        sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                    }
 
-                                    if(!IS_BUMP_COMMIT || (DID_LAST_BUILD_ERROR || IS_FIRST_BUILD) ) {
+                                    if(!IS_BUMP_COMMIT) {
                                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     } else {
                                         referenceTag = getReferenceTag()
@@ -294,8 +298,15 @@ def call(Map pipelineParams) {
     }
 }
 
-def tag(tag) {
-
+def doesTagExist(tag) {
+    exists = sh(
+        script: """
+        if [ $(git tag -l "$tag") ]; then 
+            echo \"yes\"
+        fi
+    """,
+    returnStdout: true).trim()
+    return exists == 'yes'
 }
 
 def getDockerTag(version) {
