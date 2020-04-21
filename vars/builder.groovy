@@ -1,4 +1,5 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+import org.apache.commons.lang.StringUtils;
 
 def call(Map pipelineParams) {
 
@@ -212,52 +213,36 @@ def call(Map pipelineParams) {
         //     ])
         // })
 
-        stage('Docker Release', isSpecialBuild(), {
+        stage('Docker', isSpecialBuild(), {
 
-            stage('Get Tag', isOpsBuild() || isReleaseBuild(), {    
+            stage('Get missing tag', StringUtils.isBlank(PROJECT_VERSION), {  
                 dir('project') {
                     PROJECT_VERSION = sh([
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
                             returnStdout: true
                     ]).trim()
-
-                    DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
                 }
-            })
+            }) 
 
             stage('Building & Re-tagging', true, {
+
+                stage('Generate Docker Tag') {
+                    DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
+                }
+
                 customParallel([
-
-                        step('Master Branch', isOpsBuild(), {
-                            dir('project') {
-                                script {
-                                    referenceTag = getReferenceTag(PROJECT_VERSION)
-                                    sh "docker pull ${pipelineParams.imageName}${referenceTag}"
-                                    sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                }
-                            }
-                        }),
-                        step('Release Branch', isReleaseBuild(), {
-                            dir('project') {
-                                script {
-                                    if(!IS_BUMP_COMMIT) {
-                                        sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                    } else {
-                                        referenceTag = getReferenceTag(PROJECT_VERSION)
-                                        sh "docker pull ${pipelineParams.imageName}${referenceTag}"
-                                        sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                    }
-
-                                }
-                            }
-                        }),
-                        step('Develop Branch', isRefBuild(), {
-                            dir('project') {
-                                script {
-                                    sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                }
-                            }
-                        })
+                    step('Build Docker Image', (isReleaseBuild() || isRefBuild()) && !IS_BUMP_COMMIT, {
+                        dir('project') {
+                            sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                        }
+                    }),
+                    stage('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
+                        if(!doesDockerImageExist(pipelineParams.imageName + DOCKER_TAG_VERSION)) {
+                            referenceTag = getReferenceTag(PROJECT_VERSION)
+                            sh "docker pull ${pipelineParams.imageName}${referenceTag}"
+                            sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                        }
+                    })
                 ])
             })
         })
@@ -314,8 +299,19 @@ def doesTagExist(tag) {
         if [ \$(git tag -l \"$tag\") ]; then 
             echo \"yes\"
         fi
-    """,
-    returnStdout: true).trim()
+        """,
+        returnStdout: true).trim()
+    return exists == 'yes'
+}
+
+def doesDockerImageExist(image) {
+    exists = sh(
+        script: """
+        if [ \"$(docker images -q ${image} 2> /dev/null)\" == \"\" ]; then 
+            echo \"yes\"
+        fi
+        """,
+        returnStdout: true).trim()
     return exists == 'yes'
 }
 
