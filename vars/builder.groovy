@@ -82,7 +82,7 @@ def call(Map pipelineParams) {
             echo "This is a bump commit build - exiting early"
         })
 
-        stage('CI Build & Test', !isOpsBuild() && !isRefBuild(), {
+        stage('Integration Test', true, {
 
             def String unique_Id = UUID.randomUUID().toString()
 
