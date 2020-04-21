@@ -127,7 +127,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Update project version', isSpecialBuild() && !IS_BUMP_COMMIT, {
+        stage('Update project version', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
 
             customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
@@ -168,7 +168,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Get deployment version', isSpecialBuild(), {
+        stage('Get deployment version', (isRefBuild() || isReleaseBuild()), {
 
             customParallel([
 
@@ -198,19 +198,59 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Docker build and tag', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
+        stage('Docker', isSpecialBuild() && !IS_BUMP_COMMIT, {
 
-            dir('project') {
+            stage('Get Tag') {
+                customParallel([
 
-                script {
-                    DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
-                    sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
-                    sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                }
+                        step('Master Branch', isOpsBuild(), {
+                            PROJECT_VERSION = sh([
+                                    script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
+                                    returnStdout: true
+                            ]).trim()
+
+                            DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
+                        }),
+                        step('Develop & Release Branches', isRefBuild() || isReleaseBuild(), {
+                            DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
+                        })
+                ])
+            }
+
+            stage('Building & Re-tagging') {
+                customParallel([
+
+                        step('Master Branch', isOpsBuild(), {
+                            dir('project') {
+                                script {
+                                    sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                    referenceTag = getReferenceTag()
+                                    sh "docker pull ${pipelineParams.imageName}${referenceTag}"
+                                    sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                }
+                            }
+                        }),
+                        step('Release Branch', isReleaseBuild(), {
+                            dir('project') {
+                                script {
+                                    sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
+                                    sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+
+                                }
+                            }
+                        }),
+                        step('Develop Branch', isRefBuild(), {
+                            dir('project') {
+                                script {
+                                    sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                }
+                            }
+                        })
+                ])
             }
         })
 
-        stage('Prepare project for next iteration', isSpecialBuild() && !IS_BUMP_COMMIT, {
+        stage('Prepare project for next iteration', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
             customParallel([
 
                     step('Maven', pipelineParams.buildType == 'maven', {
@@ -260,6 +300,13 @@ def getDockerTag(version) {
     } else if(isReleaseBuild()) {
         return version + '-release-candidate'
     }
+}
+
+def getReferenceTag(version) {
+    if(isOpsBuild()) {
+        return version + '-release-candidate'
+    }
+    throw new Exception("Invalid use of this function")
 }
 
 def lastCommitIsBumpCommit() {
