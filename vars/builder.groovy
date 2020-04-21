@@ -236,7 +236,7 @@ def call(Map pipelineParams) {
                             sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                         }
                     }),
-                    stage('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
+                    step('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
                         if(!doesDockerImageExist(pipelineParams.imageName + DOCKER_TAG_VERSION)) {
                             referenceTag = getReferenceTag(PROJECT_VERSION)
                             sh "docker pull ${pipelineParams.imageName}${referenceTag}"
