@@ -82,7 +82,7 @@ def call(Map pipelineParams) {
             echo "This is a bump commit build - exiting early"
         })
 
-        stage('Integration Test', true, {
+        stage('Integration Test') {
 
             def String unique_Id = UUID.randomUUID().toString()
 
@@ -122,7 +122,7 @@ def call(Map pipelineParams) {
                         }
                     })
             ])
-        })
+        }
 
         stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
