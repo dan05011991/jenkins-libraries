@@ -46,20 +46,20 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Checkout Deployment', isSpecialBuild(), {
-
-                        dir('deployment') {
-                            git(
-                                    branch: "${SOURCE_BRANCH}",
-                                    url: "${pipelineParams.deploymentRepo}",
-                                    credentialsId: 'ssh'
-                            )
-
-                            script {
-                                DEPLOYMENT_DIR = pwd()
-                            }
-                        }
-                    }),
+//                    step('Checkout Deployment', isSpecialBuild(), {
+//
+//                        dir('deployment') {
+//                            git(
+//                                    branch: "${SOURCE_BRANCH}",
+//                                    url: "${pipelineParams.deploymentRepo}",
+//                                    credentialsId: 'ssh'
+//                            )
+//
+//                            script {
+//                                DEPLOYMENT_DIR = pwd()
+//                            }
+//                        }
+//                    }),
                     step('Create pipeline scripts', true, {
 
                         dir('project') {
