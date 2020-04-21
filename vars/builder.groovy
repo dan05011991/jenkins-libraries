@@ -1,5 +1,4 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
-import org.apache.commons.lang.StringUtils;
 
 def call(Map pipelineParams) {
 
@@ -125,7 +124,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Update project version', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
+        stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
             customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
@@ -170,11 +169,9 @@ def call(Map pipelineParams) {
             ])
         })
 
-        
-
         stage('Docker Building & Re-tagging', isSpecialBuild(), {
 
-            stage('Get missing tag', (isReleaseBuild() || isOpsBuild()) && StringUtils.isBlank(PROJECT_VERSION), {  
+            stage('Get missing tag', isOpsBuild(), {  
                 dir('project') {
                     PROJECT_VERSION = sh([
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
@@ -186,13 +183,13 @@ def call(Map pipelineParams) {
             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
             customParallel([
-                step('Build Docker Image', (isReleaseBuild() || isRefBuild()) && !IS_BUMP_COMMIT, {
+                step('Build Docker Image', isReleaseBuild() && !IS_BUMP_COMMIT, {
                     dir('project') {
                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                         SHOULD_PUSH_DOCKER = true
                     }
                 }),
-                step('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
+                step('Re-tag Image', isOpsBuild(), {
                     if(!doesDockerImageExist(pipelineParams.imageName + DOCKER_TAG_VERSION)) {
                         referenceTag = getReferenceTag(PROJECT_VERSION)
                         sh "docker pull ${pipelineParams.imageName}${referenceTag}"
@@ -203,9 +200,9 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Prepare project for next iteration', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
+        stage('Prepare project for next iteration', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
-            stage('Tag git release', isRefBuild(), {
+            stage('Tag git release', true, {
                 dir('project') {
                     sh "git tag -a ${PROJECT_VERSION} -m \"Release ${PROJECT_VERSION}\""
                 }
@@ -224,7 +221,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Push Project Updates', isSpecialBuild(), {
+        stage('Push Project Updates', isReleaseBuild(), {
 
             customParallel([
                     step('Push docker image', SHOULD_PUSH_DOCKER, {
