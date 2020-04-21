@@ -212,7 +212,7 @@ def call(Map pipelineParams) {
                 }
             }
 
-            stage('Building & Re-tagging') {
+            stage('Building & Re-tagging', true, {
                 customParallel([
 
                         step('Master Branch', isOpsBuild() || isReleaseBuild(), {
