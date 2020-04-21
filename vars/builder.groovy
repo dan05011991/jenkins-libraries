@@ -86,7 +86,7 @@ def call(Map pipelineParams) {
             def String unique_Id = UUID.randomUUID().toString()
 
             customParallel([
-                    stage('Maven', pipelineParams.buildType == 'maven', {
+                    step('Maven', pipelineParams.buildType == 'maven', {
 
                         try {
                             dir("$PROJECT_DIR") {
@@ -103,7 +103,7 @@ def call(Map pipelineParams) {
                             sh "docker rmi ${unique_Id}"
                         }
                     }),
-                    stage('Gulp', pipelineParams.buildType == 'gulp', {
+                    step('Gulp', pipelineParams.buildType == 'gulp', {
 
                         try {
                             dir("$PROJECT_DIR") {
