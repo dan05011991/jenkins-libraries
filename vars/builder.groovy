@@ -17,6 +17,8 @@ def call(Map pipelineParams) {
     def Boolean DID_LAST_BUILD_ERROR
     def Boolean IS_FIRST_BUILD
 
+    def Boolean SHOULD_PUSH_DOCKER
+
     node {
         properties([
                 disableConcurrentBuilds()
@@ -42,6 +44,7 @@ def call(Map pipelineParams) {
                     SOURCE_BRANCH = "${BRANCH_NAME}"
                     SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
                     IS_BUMP_COMMIT = false
+                    SHOULD_PUSH_DOCKER = false
                     IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
                     DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
                 }
@@ -186,7 +189,7 @@ def call(Map pipelineParams) {
                 step('Build Docker Image', (isReleaseBuild() || isRefBuild()) && !IS_BUMP_COMMIT, {
                     dir('project') {
                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        pushDockerImage = true
+                        SHOULD_PUSH_DOCKER = true
                     }
                 }),
                 step('Re-tag Image', (isReleaseBuild() && IS_BUMP_COMMIT) || isOpsBuild(), {
@@ -194,7 +197,7 @@ def call(Map pipelineParams) {
                         referenceTag = getReferenceTag(PROJECT_VERSION)
                         sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                         sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        pushDockerImage = true
+                        SHOULD_PUSH_DOCKER = true
                     }
                 })
             ])
@@ -224,7 +227,7 @@ def call(Map pipelineParams) {
         stage('Push Project Updates', isSpecialBuild(), {
 
             customParallel([
-                    step('Push docker image', pushDockerImage, {
+                    step('Push docker image', SHOULD_PUSH_DOCKER, {
 
                         dir('project') {
                             script {
