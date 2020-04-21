@@ -194,7 +194,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Docker', isSpecialBuild() && !IS_BUMP_COMMIT, {
+        stage('Docker', isSpecialBuild(), {
 
             stage('Get Tag') {
                 customParallel([
@@ -230,7 +230,10 @@ def call(Map pipelineParams) {
                             dir('project') {
                                 script {
                                     sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
-                                    sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+
+                                    if(!IS_BUMP_COMMIT) {
+                                        sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                                    }
 
                                 }
                             }
@@ -261,7 +264,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Push Project Updates', isSpecialBuild() && !IS_BUMP_COMMIT, {
+        stage('Push Project Updates', isSpecialBuild(), {
 
             customParallel([
                     step('Push docker image', true, {
@@ -274,7 +277,7 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Push project update', true, {
+                    step('Push project update', !IS_BUMP_COMMIT, {
 
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
