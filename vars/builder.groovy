@@ -41,6 +41,7 @@ def call(Map pipelineParams) {
                             )
 
                             script {
+                                echo currentBuild.getPreviousBuild().result 
                                 PROJECT_DIR = pwd()
                                 IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                             }
@@ -231,7 +232,10 @@ def call(Map pipelineParams) {
                                 script {
                                     sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
 
-                                    if(!IS_BUMP_COMMIT) {
+                                    didLastBuildError = currentBuild.getPreviousBuild().result == 'ERROR'
+                                    isThisFirstBuild = currentBuild.previousBuild.getNumber() == 1
+
+                                    if(!IS_BUMP_COMMIT || (didLastBuildError || isThisFirstBuild) ) {
                                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     }
 
