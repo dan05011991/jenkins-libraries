@@ -221,7 +221,7 @@ def call(Map pipelineParams) {
                                     if(!doesTagExist(DOCKER_TAG_VERSION)) {
                                         sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
                                     }
-                                    referenceTag = getReferenceTag()
+                                    referenceTag = getReferenceTag(DOCKER_TAG_VERSION)
                                     sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                                     sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                 }
@@ -237,7 +237,7 @@ def call(Map pipelineParams) {
                                     if(!IS_BUMP_COMMIT) {
                                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     } else {
-                                        referenceTag = getReferenceTag()
+                                        referenceTag = getReferenceTag(DOCKER_TAG_VERSION)
                                         sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                                         sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     }
