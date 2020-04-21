@@ -250,7 +250,9 @@ def call(Map pipelineParams) {
         stage('Prepare project for next iteration', (isRefBuild() || isReleaseBuild()) && !IS_BUMP_COMMIT, {
 
             stage('Tag git release', isRefBuild(), {
-                sh "git tag -a ${PROJECT_VERSION} -m \"Release ${PROJECT_VERSION}\""
+                dir('project') {
+                    sh "git tag -a ${PROJECT_VERSION} -m \"Release ${PROJECT_VERSION}\""
+                }
             })
 
             customParallel([
