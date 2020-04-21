@@ -204,7 +204,7 @@ def call(Map pipelineParams) {
             stage('Get Tag') {
                 customParallel([
 
-                        step('Master Branch', isOpsBuild(), {
+                        step('Master Branch', isOpsBuild() || isReleaseBuild(), {
                             PROJECT_VERSION = sh([
                                     script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
                                     returnStdout: true
@@ -212,7 +212,7 @@ def call(Map pipelineParams) {
 
                             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
                         }),
-                        step('Develop & Release Branches', isRefBuild() || isReleaseBuild(), {
+                        step('Develop & Release Branches', isRefBuild(), {
                             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
                         })
                 ])
