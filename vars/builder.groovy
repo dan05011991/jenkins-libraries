@@ -260,7 +260,7 @@ def doesTagExist(tag) {
 def doesDockerImageExist(image) {
     exists = sh(
         script: """
-        if [ \"\$(docker images -q ${image} 2> /dev/null)\" == \"\" ]; then 
+        if [ ! -z "\$(docker images -q ${image} 2> /dev/null)" ]; then 
             echo \"yes\"
         fi
         """,
