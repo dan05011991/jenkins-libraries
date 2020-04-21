@@ -12,6 +12,9 @@ def call(Map pipelineParams) {
     def String PROJECT_DIR = ''
     def String DEPLOYMENT_DIR = ''
 
+    def Boolean DID_LAST_BUILD_ERROR
+    def Boolean IS_FIRST_BUILD
+
     node {
         properties([
                 disableConcurrentBuilds()
@@ -41,7 +44,6 @@ def call(Map pipelineParams) {
                             )
 
                             script {
-                                echo currentBuild.getPreviousBuild().result 
                                 PROJECT_DIR = pwd()
                                 IS_BUMP_COMMIT = lastCommitIsBumpCommit()
                             }
@@ -66,6 +68,8 @@ def call(Map pipelineParams) {
                         dir('project') {
 
                             script {
+                                IS_FIRST_BUILD = currentBuild.previousBuild.getNumber() == 1
+                                DID_LAST_BUILD_ERROR = currentBuild.getPreviousBuild().result != 'SUCCESS'
                                 createScript('increment_version.sh')
                             }
                         }
@@ -232,10 +236,7 @@ def call(Map pipelineParams) {
                                 script {
                                     sh "git tag -a ${DOCKER_TAG_VERSION} -m \"Release tagged\""
 
-                                    didLastBuildError = currentBuild.getPreviousBuild().result == 'ERROR'
-                                    isThisFirstBuild = currentBuild.previousBuild.getNumber() == 1
-
-                                    if(!IS_BUMP_COMMIT || (didLastBuildError || isThisFirstBuild) ) {
+                                    if(!IS_BUMP_COMMIT || (DID_LAST_BUILD_ERROR || IS_FIRST_BUILD) ) {
                                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                                     }
 
