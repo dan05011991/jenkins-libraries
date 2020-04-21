@@ -169,7 +169,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Docker Building & Re-tagging', isSpecialBuild(), {
+        stage('Docker Building & Re-tagging', isReleaseBuild() || isOpsBuild(), {
 
             stage('Get missing tag', isOpsBuild(), {  
                 dir('project') {
@@ -178,7 +178,7 @@ def call(Map pipelineParams) {
                             returnStdout: true
                     ]).trim()
                 }
-            }) 
+            })
 
             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
