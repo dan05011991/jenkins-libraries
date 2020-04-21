@@ -215,7 +215,7 @@ def call(Map pipelineParams) {
             stage('Building & Re-tagging', true, {
                 customParallel([
 
-                        step('Master Branch', isOpsBuild() || isReleaseBuild(), {
+                        step('Master Branch', isOpsBuild(), {
                             dir('project') {
                                 script {
                                     if(!doesTagExist(DOCKER_TAG_VERSION)) {
