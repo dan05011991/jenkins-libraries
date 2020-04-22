@@ -136,7 +136,7 @@ pipeline {
                     }
 
                     agent {
-                        label 'Dev'
+                        label 'dev'
                     }
 
                     steps {
@@ -161,7 +161,7 @@ pipeline {
                     }
 
                     agent {
-                        label 'Ref'
+                        label 'ref'
                     }
 
                     steps {
@@ -186,7 +186,7 @@ pipeline {
                     }
 
                     agent {
-                        label 'Int'
+                        label 'int'
                     }
 
                     steps {
@@ -211,7 +211,7 @@ pipeline {
                     }
 
                     agent {
-                        label 'Ops'
+                        label 'ops'
                     }
 
                     steps {
