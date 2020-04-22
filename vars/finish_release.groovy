@@ -28,7 +28,7 @@ pipeline {
                                     description: 'This approves that a release can start',
                                     name: 'Approved'
                             )
-                    ]
+                    ],
                     submitter: 'john'
         )
         }
