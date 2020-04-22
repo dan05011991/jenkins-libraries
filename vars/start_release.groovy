@@ -1,0 +1,26 @@
+node {
+    cleanWs()
+        
+    git(
+        branch: "${env.Branch}",
+        url: "git@github.com:dan05011991/demo-application-backend.git",
+        credentialsId: 'ssh'
+    )
+    
+    if(env.Release == 'Start') {
+        sh "git checkout -b release/release-${env.Label}"
+        sh "git push origin release/release-${env.Label}"
+    } else if(env.Release =='Finish') {
+        sh """
+            git checkout master
+            git pull origin master
+            git merge release/release-${env.Label}
+            git push origin master'
+            
+            git checkout develop
+            git pull origin develop
+            git merge release/release-${env.Label}
+            git push origin develop
+        """
+    }
+}
