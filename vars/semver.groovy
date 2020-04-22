@@ -7,7 +7,7 @@ node {
             credentialsId: 'ssh'
     )
     
-    createScript("semver.sh")
+    createScript('semver.sh')
     
     sh """
         if [ ! -f ${PROJECT_KEY} ]; then
