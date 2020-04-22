@@ -108,7 +108,7 @@ pipeline {
             steps {
                 script {
                     sshagent(credentials: ['ssh']) {
-                        sh "git push origin ${SOURCE_BRANCH}"
+                        sh "git push origin master"
                     }
                 }
             }
