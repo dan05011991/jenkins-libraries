@@ -15,37 +15,47 @@ pipeline {
         OPERATIONAL_BRANCH = 'master'
     }
 
-    stage('Clean') {
-        cleanWs()
-    }
-
-    stage('Obtain approval') {
-        timeout(time: 5, unit: 'MINUTES') { 
-            input(
-                    message: "Please provide approval for release to finish",
-                    ok: 'Approved',
-                    submitter: 'john'
-            )
+    stages {
+        stage('Clean') {
+            steps {
+                cleanWs()
+            }
         }
-    }
 
-    stage('Finish Release') {
-        git(
-            branch: "${SOURCE_BRANCH}",
-            url: "git@github.com:dan05011991/demo-application-backend.git",
-            credentialsId: 'ssh'
-        )
+        stage('Obtain approval') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') { 
+                    input(
+                            message: "Please provide approval for release to start",
+                            ok: 'Approved',
+                            submitter: 'john'
+                    )
+                }
+            }
+        }
 
-        sh """
-            git checkout ${INTEGRATION_BRANCH}
-            git pull origin ${INTEGRATION_BRANCH}
-            git merge release/release-${SOURCE_BRANCH}
-            git push origin ${INTEGRATION_BRANCH}
+        stage('Finish Release') {
+            steps {
+                git(
+                    branch: "${SOURCE_BRANCH}",
+                    url: "git@github.com:dan05011991/demo-application-backend.git",
+                    credentialsId: 'ssh'
+                )
 
-            git checkout ${OPERATIONAL_BRANCH}
-            git pull origin ${OPERATIONAL_BRANCH}
-            git merge release/release-${SOURCE_BRANCH}
-            git push origin ${OPERATIONAL_BRANCH} 
-        """
+                script {
+                    sh """
+                        git checkout ${INTEGRATION_BRANCH}
+                        git pull origin ${INTEGRATION_BRANCH}
+                        git merge release/release-${SOURCE_BRANCH}
+                        git push origin ${INTEGRATION_BRANCH}
+
+                        git checkout ${OPERATIONAL_BRANCH}
+                        git pull origin ${OPERATIONAL_BRANCH}
+                        git merge release/release-${SOURCE_BRANCH}
+                        git push origin ${OPERATIONAL_BRANCH} 
+                    """
+                }
+            }
+        }
     }
 }
