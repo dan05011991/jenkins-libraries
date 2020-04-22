@@ -13,28 +13,30 @@ pipeline {
         SOURCE_BRANCH = 'develop'
     }
 
-    stage('Clean') {
-        cleanWs()
-    }
-
-    stage('Obtain approval') {
-        timeout(time: 5, unit: 'MINUTES') { 
-            input(
-                    message: "Please provide approval for release to start",
-                    ok: 'Approved',
-                    submitter: 'john'
-            )
+    stages {
+        stage('Clean') {
+            cleanWs()
         }
-    }
 
-    stage('Start Release') {
-        git(
-            branch: "${env.Branch}",
-            url: "git@github.com:dan05011991/demo-application-backend.git",
-            credentialsId: 'ssh'
-        )
+        stage('Obtain approval') {
+            timeout(time: 5, unit: 'MINUTES') { 
+                input(
+                        message: "Please provide approval for release to start",
+                        ok: 'Approved',
+                        submitter: 'john'
+                )
+            }
+        }
 
-        sh "git checkout -b release/release-${env.Label}"
-        sh "git push origin release/release-${env.Label}"
+        stage('Start Release') {
+            git(
+                branch: "${env.Branch}",
+                url: "git@github.com:dan05011991/demo-application-backend.git",
+                credentialsId: 'ssh'
+            )
+
+            sh "git checkout -b release/release-${env.Label}"
+            sh "git push origin release/release-${env.Label}"
+        }
     }
 }
