@@ -55,7 +55,7 @@ pipeline {
             parallel {
                 stage('Deploy to Dev') {
                     when {
-                        Dev == true
+                        env.dev == true
                     }
 
                     steps {
@@ -67,7 +67,7 @@ pipeline {
 
                 stage('Deploy to Ref') {
                     when {
-                        Ref
+                        env.dev == true
                     }
 
                     steps {
@@ -79,7 +79,7 @@ pipeline {
 
                 stage('Deploy to Int') {
                     when {
-                        Int
+                        env.dev == true
                     }
 
                     steps {
@@ -91,7 +91,7 @@ pipeline {
 
                 stage('Deploy to Ops') {
                     when {
-                        Ops
+                        env.dev == true
                     }
 
                     steps {
