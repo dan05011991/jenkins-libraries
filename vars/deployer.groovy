@@ -39,11 +39,9 @@ pipeline {
         )
     }
 
-    environment {
-        SOURCE_BRANCH = 'master'
-        REMOTE = 'git@github.com:dan05011991/demo-application-docker.git'
-    }
-
+    def SOURCE_BRANCH = 'master'
+    def REMOTE = 'git@github.com:dan05011991/demo-application-docker.git'
+    
     stages {
         stage('Checkout') {
             steps {
