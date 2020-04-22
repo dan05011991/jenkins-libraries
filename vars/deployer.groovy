@@ -47,7 +47,7 @@ pipeline {
             steps {
                 git(
                         branch: "${SOURCE_BRANCH}",
-                        url: "${env.REMOTE}",
+                        url: "${REMOTE}",
                         credentialsId: 'ssh'
                 )
             }
