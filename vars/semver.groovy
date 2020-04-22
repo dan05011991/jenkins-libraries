@@ -29,6 +29,8 @@ node {
         git push origin master
     """
 
+    sh "cat ${PROJECT_KEY} > version"
+
     archiveArtifacts artifacts: 'version', fingerprint: true
 }
 
