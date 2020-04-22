@@ -1,3 +1,6 @@
+def String SOURCE_BRANCH = 'master'
+def String REMOTE = 'git@github.com:dan05011991/demo-application-docker.git'
+
 pipeline {
     agent any
 
@@ -38,9 +41,6 @@ pipeline {
              description: 'Deploy to operational environment'
         )
     }
-
-    def SOURCE_BRANCH = 'master'
-    def REMOTE = 'git@github.com:dan05011991/demo-application-docker.git'
     
     stages {
         stage('Checkout') {
