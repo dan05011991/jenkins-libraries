@@ -12,10 +12,10 @@ node {
     sh """
         if [ ! -f ${PROJECT_KEY} ]; then
             echo "1.0.0" > ${PROJECT_KEY}
+        else
+            echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY})" > ${PROJECT_KEY}
         fi
-        
-        ./semver.sh \$(cat ${PROJECT_KEY}) ${RELEASE_TYPE}
-        
+
         git add ${PROJECT_KEY}
         
         git commit -m "Bumped version for ${PROJECT_KEY}"
