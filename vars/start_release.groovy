@@ -5,7 +5,7 @@ pipeline {
         string(
             name: 'Label', 
             defaultValue: 'DEFAULT', 
-            description: 'This is unique name which will be prefixed on the end of the branch e.g. release/release-mylabel'
+            description: 'This is unique name which will be prefixed on the end of the branch e.g. release/mylabel'
         )
     }
 
@@ -41,8 +41,8 @@ pipeline {
                 )
 
                 script {
-                    sh "git checkout -b release/release-${env.Label}"
-                    sh "git push origin release/release-${env.Label}"
+                    sh "git checkout -b release/${env.Label}"
+                    sh "git push origin release/${env.Label}"
                 }
             }
         }
