@@ -16,6 +16,8 @@ node {
             echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY}))" > ${PROJECT_KEY}
         fi
 
+        rm semver.sh
+
         git add ${PROJECT_KEY}
         
         git commit -m "Bumped version for ${PROJECT_KEY}"
