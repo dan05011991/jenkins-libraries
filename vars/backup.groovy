@@ -1,35 +1,4 @@
-stage('Update compose version', isSpecialBuild(), {
 
-    stage('Update file') {
-
-        dir('deployment') {
-
-            sshagent(credentials: ['ssh']) {
-                sh """
-                            IMAGE=\$(echo ${pipelineParams.imageName} | sed 's/\\//\\\\\\//g')
-                            COMPOSE_FILE=docker-compose.yaml
-                            SNAPSHOT=${DOCKER_TAG_VERSION}
-                    
-                            sed -i -E "s/\$IMAGE.+/\$IMAGE\$SNAPSHOT/" \$COMPOSE_FILE
-                            
-                            if [ \$(git diff | wc -l) -gt 0 ]; then
-                                git add docker-compose.yaml
-                                git commit -m "[Automated commit: version bump]"
-                            fi
-            
-                        """
-            }
-        }
-    }
-
-    stage('Push File') {
-        dir('deployment') {
-            sshagent(credentials: ['ssh']) {
-                sh "git push origin ${SOURCE_BRANCH}"
-            }
-        }
-    }
-})
 
 
 if(isRefBuild()) {
