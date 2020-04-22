@@ -13,7 +13,7 @@ node {
         if [ ! -f ${PROJECT_KEY} ]; then
             echo "1.0.0" > ${PROJECT_KEY}
         else
-            echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY})" > ${PROJECT_KEY}
+            echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY}))" > ${PROJECT_KEY}
         fi
 
         git add ${PROJECT_KEY}
