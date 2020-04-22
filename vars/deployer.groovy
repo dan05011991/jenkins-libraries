@@ -41,11 +41,13 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            git(
-                    branch: "${env.branch}",
-                    url: "${env.repo}",
-                    credentialsId: 'ssh'
-            )
+            steps {
+                git(
+                        branch: "${env.branch}",
+                        url: "${env.repo}",
+                        credentialsId: 'ssh'
+                )
+            }
         }
 
         stage('Update compose version') {
