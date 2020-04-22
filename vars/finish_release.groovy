@@ -10,7 +10,7 @@ pipeline {
     }
 
     environment {
-        SOURCE_BRANCH = "${Release_Branch}"
+        SOURCE_BRANCH = "${Release Branch}"
         INTEGRATION_BRANCH = 'develop'
         OPERATIONAL_BRANCH = 'master'
     }
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 timeout(time: 5, unit: 'MINUTES') { 
                     input(
-                            message: "Please provide approval for release to start",
+                            message: "Please provide approval for release to finish",
                             ok: 'Approved',
                             submitter: 'john'
                     )
