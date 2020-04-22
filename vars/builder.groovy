@@ -140,11 +140,13 @@ def call(Map pipelineParams) {
 
         stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
+            PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey, 'm')
+
             customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
-                            sh 'mvn versions:set -DremoveSnapshot'
+                            sh "mvn versions:set -DnewVersion=${PROJECT_VERSION}"
                             sh 'git add pom.xml'
                             sh 'git commit -m "[Automated commit: Project released]"'
 
@@ -164,11 +166,6 @@ def call(Map pipelineParams) {
                                         script: "sed -n \"s/^.*appVersion.*'\\(.*\\)'.*\$/\\1/ p\" conf/config-release.js | tr -d '\\n'",
                                         returnStdout: true
                                 )
-
-                                PROJECT_VERSION = sh(
-                                        script: "./increment_version.sh ${UI_VERSION}",
-                                        returnStdout: true
-                                ).trim()
 
                                 sh("""
                                     #!/bin/bash
@@ -260,6 +257,30 @@ def call(Map pipelineParams) {
             ])
         })
     }
+}
+
+def getNewReleaseVersion(key, type) {
+    def job = build job: 'SemVer', parameters: [
+            string(name: 'PROJECT_KEY', value: "${key}"),
+            string(name: 'RELEASE_TYPE', value: "${type}")
+        ], 
+        propagate: true, 
+        wait: true
+        
+    def jobResult = job.getResult()
+     
+    copyArtifacts(
+        fingerprintArtifacts: true, 
+        projectName: 'SemVer', 
+        selector: specific("${job.number}")
+    )
+    
+    version = sh(
+        script: 'cat version',  
+        returnStdout: true
+        ).trim()
+    
+    return version
 }
 
 def doesTagExist(tag) {
