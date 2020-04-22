@@ -136,7 +136,7 @@ pipeline {
                     }
 
                     agent {
-                        label params.Dev
+                        label 'Dev'
                     }
 
                     steps {
@@ -161,7 +161,7 @@ pipeline {
                     }
 
                     agent {
-                        label params.Ref
+                        label 'Ref'
                     }
 
                     steps {
@@ -186,7 +186,7 @@ pipeline {
                     }
 
                     agent {
-                        label params.Int
+                        label 'Int'
                     }
 
                     steps {
@@ -211,7 +211,7 @@ pipeline {
                     }
 
                     agent {
-                        label params.Ops
+                        label 'Ops'
                     }
 
                     steps {
