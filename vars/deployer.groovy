@@ -148,7 +148,7 @@ pipeline {
                         )
 
                         script {
-                            sh 'docker-compose -d -f dev-docker-compose.yaml up'
+                            sh 'docker-compose -f dev-docker-compose.yaml up -d'
                         }
                     }
                 }
@@ -173,7 +173,7 @@ pipeline {
                 //         )
 
                 //         script {
-                //             sh 'docker-compose -d -f ref-docker-compose.yaml up'
+                //             sh 'docker-compose -f ref-docker-compose.yaml up -d'
                 //         }
                 //     }
                 // }
@@ -198,7 +198,7 @@ pipeline {
                 //         )
 
                 //         script {
-                //             sh 'docker-compose -d -f int-docker-compose.yaml up'
+                //             sh 'docker-compose -f int-docker-compose.yaml up -d'
                 //         }
                 //     }
                 // }
@@ -223,7 +223,7 @@ pipeline {
                 //         )
 
                 //         script {
-                //             sh 'docker-compose -d -f ops-docker-compose.yaml up'
+                //             sh 'docker-compose -f ops-docker-compose.yaml up -d'
                 //         }
                 //     }
                 // }
