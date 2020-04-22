@@ -55,7 +55,7 @@ pipeline {
             parallel {
                 stage('Deploy to Dev') {
                     when {
-                        Dev
+                        Dev == true
                     }
 
                     steps {
