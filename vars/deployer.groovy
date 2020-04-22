@@ -56,10 +56,10 @@ pipeline {
         stage('Update compose version') {
 
             parallel {
-                stage('Deploy to Dev') {
+                stage('Dev') {
                     when {
                         expression {
-                            env.Dev
+                            Dev
                         }
                     }
 
@@ -70,10 +70,10 @@ pipeline {
                     }
                 }
 
-                stage('Deploy to Ref') {
+                stage('Ref') {
                     when {
                         expression {
-                            env.Ref
+                            Ref
                         }
                     }
 
@@ -84,10 +84,10 @@ pipeline {
                     }
                 }
 
-                stage('Deploy to Int') {
+                stage('Int') {
                     when {
                         expression {
-                            env.Int
+                            Int
                         }
                     }
 
@@ -98,10 +98,10 @@ pipeline {
                     }
                 }
 
-                stage('Deploy to Ops') {
+                stage('Ops') {
                     when {
                         expression {
-                            env.Ops
+                            Ops
                         }
                     }
 
