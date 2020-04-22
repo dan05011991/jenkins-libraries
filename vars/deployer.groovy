@@ -148,7 +148,7 @@ def updateComposeFile(file, image, tag) {
                     sed -i -E "s/\$IMAGE:.+/\$IMAGE:\$TAG/" \$COMPOSE_FILE
                     
                     if [ \$(git diff | wc -l) -gt 0 ]; then
-                        git add docker-compose.yaml
+                        git add ${file}
                         git commit -m "[Automated commit: version bump]"
                     fi
     
