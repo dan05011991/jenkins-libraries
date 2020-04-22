@@ -9,6 +9,10 @@ node {
     
     createScript('semver.sh')
     
+    if (RELEASE_TYPE != 'M' || RELEASE_TYPE != 'm' || RELEASE_TYPE != 'p') {
+        throw new Exception('Incorrect use of the release tpye flag')
+    }
+
     sh """
         if [ ! -f ${PROJECT_KEY} ]; then
             echo "1.0.0" > ${PROJECT_KEY}
