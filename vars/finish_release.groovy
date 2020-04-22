@@ -10,7 +10,7 @@ pipeline {
     }
 
     environment {
-        SOURCE_BRANCH = "${env.Release}"
+        SOURCE_BRANCH = "${Release}"
         INTEGRATION_BRANCH = 'develop'
         OPERATIONAL_BRANCH = 'master'
     }
