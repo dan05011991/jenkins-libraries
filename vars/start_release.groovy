@@ -1,3 +1,16 @@
+def deploy = input(
+        message: "Please provide approval for release to start",
+        ok: 'Submit',
+        parameters: [
+                booleanParam(
+                        defaultValue: false,
+                        description: 'This approves that a release can start',
+                        name: 'Approved'
+                )
+        ],
+        submitter: 'john'
+)
+
 node {
     cleanWs()
         
