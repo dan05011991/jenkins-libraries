@@ -3,14 +3,16 @@ pipeline {
 
     parameters {
         string(
-            name: 'Label', 
+            name: 'Release Branch', 
             defaultValue: 'DEFAULT', 
-            description: 'This is unique name which will be prefixed on the end of the branch e.g. release/release-mylabel'
+            description: 'This is the branch you wish to finish. This will merge the changes into master and develop'
         )
     }
 
     environment {
-        SOURCE_BRANCH = 'develop'
+        SOURCE_BRANCH = "${Release_Branch}"
+        INTEGRATION_BRANCH = 'develop'
+        OPERATIONAL_BRANCH = 'master'
     }
 
     stage('Clean') {
@@ -20,7 +22,7 @@ pipeline {
     stage('Obtain approval') {
         timeout(time: 5, unit: 'MINUTES') { 
             input(
-                    message: "Please provide approval for release to start",
+                    message: "Please provide approval for release to finish",
                     ok: 'Approved',
                     submitter: 'john'
             )
@@ -29,44 +31,21 @@ pipeline {
 
     stage('Finish Release') {
         git(
-            branch: "${env.Branch}",
+            branch: "${SOURCE_BRANCH}",
             url: "git@github.com:dan05011991/demo-application-backend.git",
             credentialsId: 'ssh'
         )
 
         sh """
-            git checkout master
-            git pull origin master
-            git merge release/release-${env.Label}
-            git push origin master'
-            
-            git checkout develop
-            git pull origin develop
-            git merge release/release-${env.Label}
-            git push origin develop
-        """
-    }
-}
+            git checkout ${INTEGRATION_BRANCH}
+            git pull origin ${INTEGRATION_BRANCH}
+            git merge release/release-${SOURCE_BRANCH}
+            git push origin ${INTEGRATION_BRANCH}
 
-
-
-node {
-
-    
-    if(env.Release == 'Start') {
-        sh "git checkout -b release/release-${env.Label}"
-        sh "git push origin release/release-${env.Label}"
-    } else if(env.Release =='Finish') {
-        sh """
-            git checkout master
-            git pull origin master
-            git merge release/release-${env.Label}
-            git push origin master'
-            
-            git checkout develop
-            git pull origin develop
-            git merge release/release-${env.Label}
-            git push origin develop
+            git checkout ${OPERATIONAL_BRANCH}
+            git pull origin ${OPERATIONAL_BRANCH}
+            git merge release/release-${SOURCE_BRANCH}
+            git push origin ${OPERATIONAL_BRANCH} 
         """
     }
 }
