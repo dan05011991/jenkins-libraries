@@ -10,7 +10,7 @@ pipeline {
     }
 
     environment {
-        SOURCE_BRANCH = "${Release Branch}"
+        SOURCE_BRANCH = "${env['Release Branch']}"
         INTEGRATION_BRANCH = 'develop'
         OPERATIONAL_BRANCH = 'master'
     }
@@ -19,7 +19,7 @@ pipeline {
         stage('Clean') {
             steps {
                 script {
-                    echo "${env['Release Branch']}"
+                    echo "${SOURCE_BRANCH}"
                 }
                 cleanWs()
             }
