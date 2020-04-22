@@ -35,7 +35,7 @@ pipeline {
         stage('Start Release') {
             steps {
                 git(
-                    branch: "${env.Branch}",
+                    branch: "${SOURCE_BRANCH}",
                     url: "git@github.com:dan05011991/demo-application-backend.git",
                     credentialsId: 'ssh'
                 )
