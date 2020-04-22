@@ -18,6 +18,9 @@ pipeline {
     stages {
         stage('Clean') {
             steps {
+                script {
+                    echo "${Release Branch}"
+                }
                 cleanWs()
             }
         }
