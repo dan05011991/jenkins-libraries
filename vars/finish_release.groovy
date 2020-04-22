@@ -19,7 +19,7 @@ pipeline {
         stage('Clean') {
             steps {
                 script {
-                    echo "${Release Branch}"
+                    echo "${env['Release Branch']}"
                 }
                 cleanWs()
             }
