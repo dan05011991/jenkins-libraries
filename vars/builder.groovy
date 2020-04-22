@@ -4,6 +4,7 @@ def call(Map pipelineParams) {
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
+    def Boolean IS_PR
 
     def Boolean IS_BUMP_COMMIT
 
@@ -37,10 +38,16 @@ def call(Map pipelineParams) {
             IS_BUMP_COMMIT = false
             SHOULD_PUSH_DOCKER = false
 
+            if (env.BRANCH_NAME.startsWith('PR-')) {
+                SOURCE_BRANCH = CHANGE_BRANCH
+                IS_PR = true
+            } else {
+                SOURCE_BRANCH = BRANCH_NAME
+                IS_PR = false
+            }
+
             echo "Source branch: ${SOURCE_BRANCH}"
             echo "Source Url: ${SOURCE_URL}"
-            echo "Git Branch: ${env.GIT_BRANCH}"
-            echo "Git Branch: ${env.HANGE_BRANCH}"
         }
 
         stage('Pipeline setup') {
