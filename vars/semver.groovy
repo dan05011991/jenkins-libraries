@@ -9,7 +9,7 @@ node {
     
     createScript('semver.sh')
     
-    if (RELEASE_TYPE != 'M' || RELEASE_TYPE != 'm' || RELEASE_TYPE != 'p') {
+    if (RELEASE_TYPE != 'M' && RELEASE_TYPE != 'm' && RELEASE_TYPE != 'p') {
         throw new Exception('Incorrect use of the release type flag')
     }
 
