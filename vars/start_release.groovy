@@ -1,24 +1,47 @@
-def deploy = input(
-        message: "Please provide approval for release to start",
-        ok: 'Submit',
-        parameters: [
-                booleanParam(
-                        defaultValue: false,
-                        description: 'This approves that a release can start',
-                        name: 'Approved'
-                )
-        ],
-        submitter: 'john'
-)
+pipeline {
+    agent any
+    
+    environment {
+
+    }
+
+    stage('Clean') {
+        cleanWs()
+    }
+
+    stage('Obtain approval') {
+        timeout(time: 5, unit: 'MINUTES') { 
+            input(
+                    message: "Please provide approval for release to start",
+                    ok: 'Submit',
+                    parameters: [
+                            booleanParam(
+                                    defaultValue: false,
+                                    description: 'This approves that a release can start',
+                                    name: 'Approved'
+                            )
+                    ],
+                    submitter: 'john'
+        )
+        ])
+    }
+
+    stage('Start Release') {
+        git(
+            branch: "${env.Branch}",
+            url: "git@github.com:dan05011991/demo-application-backend.git",
+            credentialsId: 'ssh'
+        )
+
+        sh "git checkout -b release/release-${env.Label}"
+        sh "git push origin release/release-${env.Label}"
+    }
+}
+
+
 
 node {
-    cleanWs()
-        
-    git(
-        branch: "${env.Branch}",
-        url: "git@github.com:dan05011991/demo-application-backend.git",
-        credentialsId: 'ssh'
-    )
+
     
     if(env.Release == 'Start') {
         sh "git checkout -b release/release-${env.Label}"
