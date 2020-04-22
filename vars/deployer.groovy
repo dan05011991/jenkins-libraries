@@ -59,7 +59,7 @@ pipeline {
                 stage('Deploy to Dev') {
                     when {
                         expression {
-                            env.Dev == true
+                            env.Dev
                         }
                     }
 
@@ -73,7 +73,7 @@ pipeline {
                 stage('Deploy to Ref') {
                     when {
                         expression {
-                            env.Dev == true
+                            env.Ref
                         }
                     }
 
@@ -87,7 +87,7 @@ pipeline {
                 stage('Deploy to Int') {
                     when {
                         expression {
-                            env.Dev == true
+                            env.Int
                         }
                     }
 
@@ -101,7 +101,7 @@ pipeline {
                 stage('Deploy to Ops') {
                     when {
                         expression {
-                            env.Dev == true
+                            env.Ops
                         }
                     }
 
@@ -115,26 +115,26 @@ pipeline {
             }
         }
 
-        stage('Push File') {
-            steps {
-                script {
-                    sshagent(credentials: ['ssh']) {
-                        sh "git push origin master"
-                    }
-                }
-            }
-        }
+        // stage('Push File') {
+        //     steps {
+        //         script {
+        //             sshagent(credentials: ['ssh']) {
+        //                 sh "git push origin master"
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Deploy') {
-            agent {
-                label "${env.environment}"
-            }
+        // stage('Deploy') {
+        //     agent {
+        //         label "${env.environment}"
+        //     }
 
-            steps {
-                echo "hello"
-                //sh 'docker-compose -f docker-compose.yaml up -d'
-            }
-        }
+        //     steps {
+        //         echo "hello"
+        //         //sh 'docker-compose -f docker-compose.yaml up -d'
+        //     }
+        // }
     }
 }
 
