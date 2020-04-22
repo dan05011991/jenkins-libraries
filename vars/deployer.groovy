@@ -128,40 +128,15 @@ pipeline {
         stage('Deploy') {
 
             parallel {
-                stage('Dev') {
-                    when {
-                        expression {
-                            params.Dev
-                        }
-                    }
-
-                    agent {
-                        label 'dev'
-                    }
-
-                    steps {
-
-                        git(
-                                branch: "${SOURCE_BRANCH}",
-                                url: "${REMOTE}",
-                                credentialsId: 'ssh'
-                        )
-
-                        script {
-                            sh 'docker-compose -d -f dev-docker-compose.yaml up'
-                        }
-                    }
-                }
-
-                // stage('Ref') {
+                // stage('Dev') {
                 //     when {
                 //         expression {
-                //             params.Ref
+                //             params.Dev
                 //         }
                 //     }
 
                 //     agent {
-                //         label 'ref'
+                //         label 'dev'
                 //     }
 
                 //     steps {
@@ -173,10 +148,35 @@ pipeline {
                 //         )
 
                 //         script {
-                //             sh 'docker-compose -d -f ref-docker-compose.yaml up'
+                //             sh 'docker-compose -d -f dev-docker-compose.yaml up'
                 //         }
                 //     }
                 // }
+
+                stage('Ref') {
+                    when {
+                        expression {
+                            params.Ref
+                        }
+                    }
+
+                    agent {
+                        label 'ref'
+                    }
+
+                    steps {
+
+                        git(
+                                branch: "${SOURCE_BRANCH}",
+                                url: "${REMOTE}",
+                                credentialsId: 'ssh'
+                        )
+
+                        script {
+                            sh 'docker-compose -d -f ref-docker-compose.yaml up'
+                        }
+                    }
+                }
 
                 // stage('Int') {
                 //     when {
