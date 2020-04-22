@@ -47,6 +47,9 @@ pipeline {
             steps {
                 script {
                     echo "${Dev}"
+                    echo "${Ref}"
+                    echo "${Int}"
+                    echo "${Ops}"
                 }
                 git(
                         branch: "${SOURCE_BRANCH}",
