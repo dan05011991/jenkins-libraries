@@ -39,7 +39,7 @@ def call(Map pipelineParams) {
 
             echo "Source branch: ${SOURCE_BRANCH}"
             echo "Source Url: ${SOURCE_URL}"
-            echo "Git Branch: ${GIT_BRANCH}"
+            echo "Git Branch: ${env.GIT_BRANCH}"
             echo "Git Branch: ${CHANGE_BRANCH}"
         }
 
