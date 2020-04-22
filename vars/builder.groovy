@@ -87,6 +87,15 @@ def call(Map pipelineParams) {
 
         stage('Integration Test') {
 
+            if(IS_PR) {
+                sh """
+                    git checkout develop
+                    git pull origin develop
+                    git checkout ${SOURCE_BRANCH}
+                    git merge develop
+                """
+            }
+            
             def String unique_Id = UUID.randomUUID().toString()
 
             customParallel([
