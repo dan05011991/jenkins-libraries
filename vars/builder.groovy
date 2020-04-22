@@ -36,6 +36,9 @@ def call(Map pipelineParams) {
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = false
             SHOULD_PUSH_DOCKER = false
+
+            echo "Source branch: ${SOURCE_BRANCH}"
+            echo "Source Url: ${SOURCE_URL}"
         }
 
         stage('Pipeline setup') {
