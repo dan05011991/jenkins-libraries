@@ -31,7 +31,7 @@ pipeline {
                     ]
                     submitter: 'john'
         )
-        ])
+        }
     }
 
     stage('Finish Release') {
