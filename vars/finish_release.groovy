@@ -18,9 +18,6 @@ pipeline {
     stages {
         stage('Clean') {
             steps {
-                script {
-                    echo "${SOURCE_BRANCH}"
-                }
                 cleanWs()
             }
         }
