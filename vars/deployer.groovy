@@ -115,26 +115,121 @@ pipeline {
             }
         }
 
-        // stage('Push File') {
-        //     steps {
-        //         script {
-        //             sshagent(credentials: ['ssh']) {
-        //                 sh "git push origin master"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push Updates') {
+            steps {
+                script {
+                    sshagent(credentials: ['ssh']) {
+                        sh "git push origin master"
+                    }
+                }
+            }
+        }
 
-        // stage('Deploy') {
-        //     agent {
-        //         label "${env.environment}"
-        //     }
+        stage('Deploy') {
 
-        //     steps {
-        //         echo "hello"
-        //         //sh 'docker-compose -f docker-compose.yaml up -d'
-        //     }
-        // }
+            parallel {
+                stage('Dev') {
+                    when {
+                        expression {
+                            params.Dev
+                        }
+                    }
+
+                    agent {
+                        label params.Dev
+                    }
+
+                    steps {
+
+                        git(
+                                branch: "${SOURCE_BRANCH}",
+                                url: "${REMOTE}",
+                                credentialsId: 'ssh'
+                        )
+
+                        script {
+                            sh 'docker-compose -d -f dev-docker-compose.yaml up'
+                        }
+                    }
+                }
+
+                stage('Ref') {
+                    when {
+                        expression {
+                            params.Ref
+                        }
+                    }
+
+                    agent {
+                        label params.Ref
+                    }
+
+                    steps {
+
+                        git(
+                                branch: "${SOURCE_BRANCH}",
+                                url: "${REMOTE}",
+                                credentialsId: 'ssh'
+                        )
+
+                        script {
+                            sh 'docker-compose -d -f ref-docker-compose.yaml up'
+                        }
+                    }
+                }
+
+                stage('Int') {
+                    when {
+                        expression {
+                            params.Int
+                        }
+                    }
+
+                    agent {
+                        label params.Int
+                    }
+
+                    steps {
+
+                        git(
+                                branch: "${SOURCE_BRANCH}",
+                                url: "${REMOTE}",
+                                credentialsId: 'ssh'
+                        )
+
+                        script {
+                            sh 'docker-compose -d -f int-docker-compose.yaml up'
+                        }
+                    }
+                }
+
+                stage('Ops') {
+                    when {
+                        expression {
+                            params.Ops
+                        }
+                    }
+
+                    agent {
+                        label params.Ops
+                    }
+
+                    steps {
+
+                        git(
+                                branch: "${SOURCE_BRANCH}",
+                                url: "${REMOTE}",
+                                credentialsId: 'ssh'
+                        )
+
+                        script {
+                            sh 'docker-compose -d -f ops-docker-compose.yaml up'
+                        }
+                    }
+                }
+
+            }
+        }
     }
 }
 
