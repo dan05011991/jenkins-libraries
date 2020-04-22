@@ -45,12 +45,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    echo "${Dev}"
-                    echo "${Ref}"
-                    echo "${Int}"
-                    echo "${Ops}"
-                }
                 git(
                         branch: "${SOURCE_BRANCH}",
                         url: "${REMOTE}",
@@ -65,7 +59,7 @@ pipeline {
                 stage('Dev') {
                     when {
                         expression {
-                            params.Dev == true
+                            params.Dev
                         }
                     }
 
@@ -79,7 +73,7 @@ pipeline {
                 stage('Ref') {
                     when {
                         expression {
-                            Ref == true
+                            params.reference
                         }
                     }
 
@@ -93,7 +87,7 @@ pipeline {
                 stage('Int') {
                     when {
                         expression {
-                            Int == true
+                            params.Int
                         }
                     }
 
@@ -107,7 +101,7 @@ pipeline {
                 stage('Ops') {
                     when {
                         expression {
-                            Ops == true
+                            params.Ops
                         }
                     }
 
