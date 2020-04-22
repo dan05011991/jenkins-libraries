@@ -73,7 +73,7 @@ pipeline {
                 stage('Ref') {
                     when {
                         expression {
-                            Ref
+                            Ref == true
                         }
                     }
 
@@ -87,7 +87,7 @@ pipeline {
                 stage('Int') {
                     when {
                         expression {
-                            Int
+                            Int == true
                         }
                     }
 
@@ -101,7 +101,7 @@ pipeline {
                 stage('Ops') {
                     when {
                         expression {
-                            Ops
+                            Ops == true
                         }
                     }
 
