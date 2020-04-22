@@ -39,12 +39,17 @@ pipeline {
         )
     }
 
+    environment {
+        SOURCE_BRANCH = 'master'
+        REMOTE = 'git@github.com:dan05011991/demo-application-docker.git'
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 git(
-                        branch: "${env.branch}",
-                        url: "${env.repo}",
+                        branch: "${SOURCE_BRANCH}",
+                        url: "${env.REMOTE}",
                         credentialsId: 'ssh'
                 )
             }
