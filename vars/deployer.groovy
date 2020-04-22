@@ -45,6 +45,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                script {
+                    echo "${Dev}"
+                }
                 git(
                         branch: "${SOURCE_BRANCH}",
                         url: "${REMOTE}",
