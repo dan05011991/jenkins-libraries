@@ -3,14 +3,14 @@ pipeline {
 
     parameters {
         string(
-            name: 'Release Branch', 
+            name: 'Release', 
             defaultValue: 'DEFAULT', 
             description: 'This is the branch you wish to finish. This will merge the changes into master and develop'
         )
     }
 
     environment {
-        SOURCE_BRANCH = "${env['Release Branch']}"
+        SOURCE_BRANCH = "${env.Release}"
         INTEGRATION_BRANCH = 'develop'
         OPERATIONAL_BRANCH = 'master'
     }
