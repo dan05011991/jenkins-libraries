@@ -1,0 +1,33 @@
+node {
+    cleanWs()
+    
+    git(
+            branch: "master",
+            url: "git@github.com:dan05011991/versioning.git",
+            credentialsId: 'ssh'
+    )
+    
+    createScript("semver.sh")
+    
+    sh """
+        if [ ! -f ${PROJECT_KEY} ]; then
+            echo "1.0.0" > ${PROJECT_KEY}
+        fi
+        
+        ./semver.sh \$(cat ${PROJECT_KEY}) ${RELEASE_TYPE}
+        
+        git add ${PROJECT_KEY}
+        
+        git commit -m "Bumped version for ${PROJECT_KEY}"
+        
+        git push origin master
+    """
+
+    archiveArtifacts artifacts: 'version', fingerprint: true
+}
+
+def createScript(scriptName) {
+    def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
+    writeFile file: "${scriptName}", text: scriptContent
+    sh "chmod +x ${scriptName}"
+}
