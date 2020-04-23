@@ -141,7 +141,7 @@ def call(Map pipelineParams) {
         stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
 
-            PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey, 'm')
+            PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey)
 
             customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
@@ -260,7 +260,8 @@ def call(Map pipelineParams) {
     }
 }
 
-def getNewReleaseVersion(key, type) {
+def getNewReleaseVersion(key) {
+    type = getIncrementType()
     def job = build job: 'SemVer', parameters: [
             string(name: 'PROJECT_KEY', value: "${key}"),
             string(name: 'RELEASE_TYPE', value: "${type}")
@@ -351,7 +352,7 @@ def isReleaseBuild() {
     return BRANCH_NAME.startsWith('release/') || BRANCH_NAME.startsWith('hotfix/')
 }
 
-def isIncrementType() {
+def getIncrementType() {
     if(BRANCH_NAME.startsWith('release/')) {
         return 'm';
     } else if(BRANCH_NAME.startsWith('hotfix/')) {
