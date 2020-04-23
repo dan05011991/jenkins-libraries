@@ -234,29 +234,23 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Push Project Updates', isReleaseBuild() || isOpsBuild(), {
+        stage('Push Docker Updates', isReleaseBuild() || isOpsBuild(), {
+            dir('project') {
+                script {
+                    withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
+                        sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                    }
+                }
+            }
+        })
 
-            customParallel([
-                    step('Push docker image', {
-
-                        dir('project') {
-                            script {
-                                withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
-                                    sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                }
-                            }
-                        }
-                    }),
-                    step('Push project update', !IS_BUMP_COMMIT, {
-
-                        dir('project') {
-                            sshagent(credentials: ['ssh']) {
-                                sh "git push origin ${SOURCE_BRANCH}"
-                                sh "git push origin ${PROJECT_VERSION}"
-                            }
-                        }
-                    })
-            ])
+        stage('Push Project Updates', (isReleaseBuild() || isOpsBuild()) && !IS_BUMP_COMMIT, {
+            dir('project') {
+                sshagent(credentials: ['ssh']) {
+                    sh "git push origin ${SOURCE_BRANCH}"
+                    sh "git push origin ${PROJECT_VERSION}"
+                }
+            }
         })
     }
 }
