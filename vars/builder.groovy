@@ -188,6 +188,7 @@ def call(Map pipelineParams) {
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
                             returnStdout: true
                     ]).trim()
+                    echo "Project version retrieved: ${PROJECT_VERSION}"
                 }
             })
 
