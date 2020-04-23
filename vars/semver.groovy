@@ -48,19 +48,19 @@ def removePatchVersion(tag) {
     def matcher = "${tag}" =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
     assert matcher.find() 
     assert matcher.size() == 1
-    assert matcher[0].length != 0
+    assert matcher[0].length() != 0
     return matcher[0]
 }
 
 def updateVersionFile(key, type, tag) {
     nonPatchOpsVersion = removePatchVersion(tag)
-    assert nonPatchOpsVersion.length != 0
+    assert nonPatchOpsVersion.length() != 0
 
     savedVersion = getSavedVersion(key, type)
-    assert savedVersion.length != 0
+    assert savedVersion.length() != 0
 
     nonPatchSavedVersion = removePatchVersion(savedVersion)
-    assert nonPatchSavedVersion.length != 0
+    assert nonPatchSavedVersion.length() != 0
 
     versionFileName = getVersionFileName(key, type)
 
