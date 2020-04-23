@@ -79,10 +79,10 @@ def getSavedVersion(key, type, tag) {
 
     savedVersion = sh(
         script: """
-            if [ ! -f ${key}.version ]; then
-                echo "${tag}" > ${key}.version
+            if [ ! -f ${key} ]; then
+                echo ("${tag}") > ${key}
             fi
-            cat ${key}.version
+            cat ${key}
         """, 
         returnStdout: true)
         .trim()
