@@ -33,12 +33,11 @@ node {
     }
 
     updateVersionFile(PROJECT_KEY, RELEASE_TYPE, GIT_TAG)
+    sh("rm semver.sh")
 
     sh("git add ${PROJECT_KEY}*.version")
     sh("git commit -m \"Bumped version for ${PROJECT_KEY}\"")
     sh("git push origin master")
-
-    sh("rm semver.sh")
 
     sh("cat ${PROJECT_KEY} > version")
     archiveArtifacts artifacts: 'version', fingerprint: true
@@ -46,14 +45,14 @@ node {
 
 def updateVersionFile(key, type, tag) {
     versionFileName = getVersionFileName(key, type)
+    savedVersion = getSavedVersion(key, type, tag)
 
     if(type != 'p') {
-        sh("echo \"\$(./semver.sh -${type} ${tag})\" > ${versionFileName}")
+        sh("echo \"\$(./semver.sh -${type} ${savedVersion})\" > ${versionFileName}")
         return
     }
 
     nonPatchOpsVersion = removePatchVersion(tag)
-    savedVersion = getSavedVersion(key, type, tag)
     nonPatchSavedVersion = removePatchVersion(savedVersion)
 
     if(nonPatchOpsVersion == nonPatchSavedVersion) {
