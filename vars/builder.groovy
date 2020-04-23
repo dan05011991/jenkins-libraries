@@ -192,6 +192,9 @@ def call(Map pipelineParams) {
                 }
             })
 
+            isOps = isOpsBuild()
+            echo "Is ops build: ${isOps}"
+
             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
             customParallel([
