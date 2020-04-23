@@ -140,6 +140,7 @@ def call(Map pipelineParams) {
 
         stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
+
             PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey, 'm')
 
             customParallel([
@@ -347,7 +348,16 @@ def isOpsBuild() {
 }
 
 def isReleaseBuild() {
-    return BRANCH_NAME.startsWith('release/')
+    return BRANCH_NAME.startsWith('release/') || BRANCH_NAME.startsWith('hotfix/')
+}
+
+def isIncrementType() {
+    if(BRANCH_NAME.startsWith('release/')) {
+        return 'm';
+    } else if(BRANCH_NAME.startsWith('hotfix/')) {
+        return 'p'
+    }
+    throw new Exception('Incorrect use of this function');
 }
 
 def createScript(scriptName) {
