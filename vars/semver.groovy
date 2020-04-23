@@ -2,7 +2,9 @@
 
 import java.util.regex.Pattern
 
-node {
+pipeline {
+    agent any
+
     parameters {
         string(
             name: 'PROJECT_KEY', 
@@ -18,44 +20,61 @@ node {
         )
     }
 
-    cleanWs()
-    
-    git(
-            branch: "master",
-            url: "git@github.com:dan05011991/versioning.git",
-            credentialsId: 'ssh'
-    )
-    
-    createScript('semver.sh')
-    
-    if (RELEASE_TYPE != 'M' && RELEASE_TYPE != 'm' && RELEASE_TYPE != 'p') {
-        throw new Exception('Incorrect use of the release type flag')
+    stage('Clean') {
+        steps {
+            script {
+                cleanWs()
+                createScript('semver.sh')
+            }
+        }
     }
 
-    def pattern = GIT_TAG =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
-    assert matcher.find() 
-    assert matcher.size() == 1
-    assert matcher[0..-1] == ["groovier", "better"] 
+    stage('Checkout') {
+        steps {
+            script {
+                git(
+                        branch: "master",
+                        url: "git@github.com:dan05011991/versioning.git",
+                        credentialsId: 'ssh'
+                )
+            }
+        }
+    }
 
-    sh """
-        if [ ! -f ${PROJECT_KEY} ]; then
-            echo "1.0.0" > ${PROJECT_KEY}
-        else
-            echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY}))" > ${PROJECT_KEY}
-        fi
+    stage('Get Version') {
+        steps {
+            script {
+                if (RELEASE_TYPE != 'M' && RELEASE_TYPE != 'm' && RELEASE_TYPE != 'p') {
+                    throw new Exception('Incorrect use of the release type flag')
+                }
 
-        rm semver.sh
+                def pattern = GIT_TAG =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
+                assert matcher.find() 
+                assert matcher.size() == 1
+                assert matcher[0..-1] == ["groovier", "better"] 
 
-        git add ${PROJECT_KEY}
-        
-        git commit -m "Bumped version for ${PROJECT_KEY}"
-        
-        git push origin master
-    """
+                sh """
+                    if [ ! -f ${PROJECT_KEY} ]; then
+                        echo "1.0.0" > ${PROJECT_KEY}
+                    else
+                        echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY}))" > ${PROJECT_KEY}
+                    fi
 
-    sh "cat ${PROJECT_KEY} > version"
+                    rm semver.sh
 
-    archiveArtifacts artifacts: 'version', fingerprint: true
+                    git add ${PROJECT_KEY}
+                    
+                    git commit -m "Bumped version for ${PROJECT_KEY}"
+                    
+                    git push origin master
+                """
+
+                sh "cat ${PROJECT_KEY} > version"
+
+                archiveArtifacts artifacts: 'version', fingerprint: true
+            }
+        }
+    } 
 }
 
 def createScript(scriptName) {
