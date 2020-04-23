@@ -235,7 +235,7 @@ def call(Map pipelineParams) {
         stage('Push Project Updates', isReleaseBuild() || isOpsBuild(), {
 
             customParallel([
-                    step('Push docker image', SHOULD_PUSH_DOCKER, {
+                    step('Push docker image', {
 
                         dir('project') {
                             script {
@@ -245,7 +245,7 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Push project update', isReleaseBuild() && !IS_BUMP_COMMIT, {
+                    step('Push project update', !IS_BUMP_COMMIT, {
 
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
