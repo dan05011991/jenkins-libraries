@@ -47,7 +47,7 @@ node {
 def updateVersionFile(key, type, tag) {
     nonPatchOpsVersion = removePatchVersion(tag)
 
-    savedVersion = getSavedVersion(key, type)
+    savedVersion = getSavedVersion(key, type, tag)
 
     nonPatchSavedVersion = removePatchVersion(savedVersion)
 
@@ -72,13 +72,13 @@ def removePatchVersion(tag) {
     return majorMinorTag 
 }
 
-def getSavedVersion(key, type) {
+def getSavedVersion(key, type, tag) {
     key = getVersionFileName(key, type)
 
     savedVersion = sh(
         script: """
             if [ ! -f ${key}.version ]; then
-                echo "1.0.0" > ${key}.version
+                echo "${tag}" > ${key}.version
             fi
             cat ${key}.version
         """, 
