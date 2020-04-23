@@ -33,7 +33,7 @@ node {
     }
 
     updateVersionFile(PROJECT_KEY, RELEASE_TYPE, GIT_TAG)
-  
+
     sh("git add ${PROJECT_KEY}*.version")
     sh("git commit -m \"Bumped version for ${PROJECT_KEY}\"")
     sh("git push origin master")
@@ -93,7 +93,7 @@ def getVersionFileName(key, type) {
     if(type == 'p') {
         key = key + '-p'
     }
-    return key
+    return key + ".version"
 }
 def createScript(scriptName) {
     def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
