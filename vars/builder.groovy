@@ -182,7 +182,7 @@ def call(Map pipelineParams) {
 
         stage('Docker Building & Re-tagging', isReleaseBuild() || isOpsBuild(), {
 
-            step('Get missing tag', isOpsBuild(), {  
+            stage('Get missing tag', isOpsBuild(), {  
                 dir('project') {
                     PROJECT_VERSION = sh([
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
