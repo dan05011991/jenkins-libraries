@@ -32,32 +32,66 @@ node {
         throw new Exception('Incorrect use of the release type flag')
     }
 
-    def matcher = "${GIT_TAG}" =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
-    assert matcher.find() 
-    assert matcher.size() == 1
-    assert matcher[0..-1] == ["groovier", "better"] 
+    updateVersionFile(PROJECT_KEY, RELEASE_TYPE, GIT_TAG)
+  
+    sh("git add ${PROJECT_KEY}*.version")
+    sh("git commit -m \"Bumped version for ${PROJECT_KEY}\"")
+    sh("git push origin master")
 
-    sh """
-        if [ ! -f ${PROJECT_KEY} ]; then
-            echo "1.0.0" > ${PROJECT_KEY}
-        else
-            echo "\$(./semver.sh -${RELEASE_TYPE} \$(cat ${PROJECT_KEY}))" > ${PROJECT_KEY}
-        fi
+    sh("rm semver.sh")
 
-        rm semver.sh
-
-        git add ${PROJECT_KEY}
-        
-        git commit -m "Bumped version for ${PROJECT_KEY}"
-        
-        git push origin master
-    """
-
-    sh "cat ${PROJECT_KEY} > version"
-
+    sh("cat ${PROJECT_KEY} > version")
     archiveArtifacts artifacts: 'version', fingerprint: true
 }
 
+def removePatchVersion(tag) {
+    def matcher = "${tag}" =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
+    assert matcher.find() 
+    assert matcher.size() == 1
+    assert matcher[0].length != 0
+    return matcher[0]
+}
+
+def updateVersionFile(key, type, tag) {
+    nonPatchOpsVersion = removePatchVersion(tag)
+    assert nonPatchOpsVersion.length != 0
+
+    savedVersion = getSavedVersion(key, type)
+    assert savedVersion.length != 0
+
+    nonPatchSavedVersion = removePatchVersion(savedVersion)
+    assert nonPatchSavedVersion.length != 0
+
+    versionFileName = getVersionFileName(key, type)
+
+    if(nonPatchOpsVersion != nonPatchSavedVersion) {
+        sh("echo \"\$(./semver.sh -${type} ${tag}\" > ${versionFileName}")
+    } else {
+        sh("echo \"\$(./semver.sh -${type} ${tag}\" > ${versionFileName}")
+    }
+}
+
+def getSavedVersion(key, type) {
+    key = getVersionFileName(key, type)
+
+    return sh(
+        script: """
+            if [ ! -f ${key} ]; then
+                echo "1.0.0" > ${key}.version
+            else
+                cat ${key}.version
+            fi
+        """, 
+        returnStdout: true)
+        .trim()
+}
+
+def getVersionFileName(key, type) {
+    if(type == 'p') {
+        key = key + '-p'
+    }
+    return key
+}
 def createScript(scriptName) {
     def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
     writeFile file: "${scriptName}", text: scriptContent
