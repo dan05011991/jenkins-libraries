@@ -44,6 +44,22 @@ node {
     archiveArtifacts artifacts: 'version', fingerprint: true
 }
 
+def updateVersionFile(key, type, tag) {
+    nonPatchOpsVersion = removePatchVersion(tag)
+
+    savedVersion = getSavedVersion(key, type)
+
+    nonPatchSavedVersion = removePatchVersion(savedVersion)
+
+    versionFileName = getVersionFileName(key, type)
+
+    if(nonPatchOpsVersion != nonPatchSavedVersion) {
+        sh("echo \"\$(./semver.sh -${type} ${tag}\" > ${versionFileName}")
+    } else {
+        sh("echo \"\$(./semver.sh -${type} ${tag}\" > ${versionFileName}")
+    }
+}
+
 def removePatchVersion(tag) {
     assert tag.length() > 0
 
@@ -56,29 +72,10 @@ def removePatchVersion(tag) {
     return majorMinorTag 
 }
 
-def updateVersionFile(key, type, tag) {
-    nonPatchOpsVersion = removePatchVersion(tag)
-    assert nonPatchOpsVersion.length() != 0
-
-    savedVersion = getSavedVersion(key, type)
-    assert savedVersion.length() != 0
-
-    nonPatchSavedVersion = removePatchVersion(savedVersion)
-    assert nonPatchSavedVersion.length() != 0
-
-    versionFileName = getVersionFileName(key, type)
-
-    if(nonPatchOpsVersion != nonPatchSavedVersion) {
-        sh("echo \"\$(./semver.sh -${type} ${tag}\" > ${versionFileName}")
-    } else {
-        sh("echo \"\$(./semver.sh -${type} ${tag}\" > ${versionFileName}")
-    }
-}
-
 def getSavedVersion(key, type) {
     key = getVersionFileName(key, type)
 
-    return sh(
+    savedVersion = sh(
         script: """
             if [ ! -f ${key} ]; then
                 echo "1.0.0" > ${key}.version
@@ -88,6 +85,9 @@ def getSavedVersion(key, type) {
         """, 
         returnStdout: true)
         .trim()
+    assert savedVersion.length() > 0
+
+    return savedVersion
 }
 
 def getVersionFileName(key, type) {
