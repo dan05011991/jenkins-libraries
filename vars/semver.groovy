@@ -32,7 +32,7 @@ node {
         throw new Exception('Incorrect use of the release type flag')
     }
 
-    def pattern = ${GIT_TAG} =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
+    def pattern = GIT_TAG =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
     assert matcher.find() 
     assert matcher.size() == 1
     assert matcher[0..-1] == ["groovier", "better"] 
