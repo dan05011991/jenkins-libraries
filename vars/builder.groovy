@@ -234,7 +234,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Push Docker Updates', isReleaseBuild() || isOpsBuild(), {
+        stage('Push Docker Updates', (isReleaseBuild() && !IS_BUMP_COMMIT) || isOpsBuild(), {
             dir('project') {
                 script {
                     withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
