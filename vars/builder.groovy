@@ -265,7 +265,7 @@ def getNewReleaseVersion(key, tag) {
     type = getIncrementType()
     def job = build job: 'SemVer', parameters: [
             string(name: 'PROJECT_KEY', value: "${key}"),
-            string(name: 'RELEASE_TYPE', value: "${type}")
+            string(name: 'RELEASE_TYPE', value: "${type}"),
             string(name: 'GIT_TAG', value: "${tag}")
         ], 
         propagate: true, 
