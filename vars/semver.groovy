@@ -45,18 +45,21 @@ node {
 }
 
 def updateVersionFile(key, type, tag) {
-    nonPatchOpsVersion = removePatchVersion(tag)
-
-    savedVersion = getSavedVersion(key, type, tag)
-
-    nonPatchSavedVersion = removePatchVersion(savedVersion)
-
     versionFileName = getVersionFileName(key, type)
 
-    if(nonPatchOpsVersion != nonPatchSavedVersion) {
+    if(type != 'p') {
         sh("echo \"\$(./semver.sh -${type} ${tag})\" > ${versionFileName}")
+        return
+    }
+
+    nonPatchOpsVersion = removePatchVersion(tag)
+    savedVersion = getSavedVersion(key, type, tag)
+    nonPatchSavedVersion = removePatchVersion(savedVersion)
+
+    if(nonPatchOpsVersion == nonPatchSavedVersion) {
+        sh("echo \"\$(./semver.sh -${type} ${savedVersion})\" > ${versionFileName}")
     } else {
-        sh("echo \"\$(./semver.sh -${type} ${nonPatchSavedVersion})\" > ${versionFileName}")
+        sh("echo \"\$(./semver.sh -${type} ${nonPatchOpsVersion}.1)\" > ${versionFileName}")
     }
 }
 
