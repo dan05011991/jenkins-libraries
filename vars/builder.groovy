@@ -188,12 +188,8 @@ def call(Map pipelineParams) {
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
                             returnStdout: true
                     ]).trim()
-                    echo "Project version retrieved: ${PROJECT_VERSION}"
                 }
             })
-
-            isOps = isOpsBuild()
-            echo "Is ops build: ${isOps}"
 
             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
@@ -236,7 +232,7 @@ def call(Map pipelineParams) {
             ])
         })
 
-        stage('Push Project Updates', isReleaseBuild(), {
+        stage('Push Project Updates', isReleaseBuild() || isOpsBuild(), {
 
             customParallel([
                     step('Push docker image', SHOULD_PUSH_DOCKER, {
@@ -249,7 +245,7 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Push project update', !IS_BUMP_COMMIT, {
+                    step('Push project update', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
                         dir('project') {
                             sshagent(credentials: ['ssh']) {
