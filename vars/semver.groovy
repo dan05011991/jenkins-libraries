@@ -45,12 +45,15 @@ node {
 }
 
 def removePatchVersion(tag) {
-    def matcher = "${tag}" =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
-    assert matcher.find() 
-    assert matcher.size() == 1
-    println matcher[0]
-    assert (matcher[0]).length() != 0
-    return matcher[0]
+    assert tag.length() > 0
+
+    println tag
+    
+    majorMinorTag = tag.substring(0, tag.lastIndexOf("."))
+    assert majorMinorTag.length() > 0
+
+    println majorMinorTag
+    return majorMinorTag 
 }
 
 def updateVersionFile(key, type, tag) {
