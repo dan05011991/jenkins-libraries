@@ -2,9 +2,7 @@
 
 import java.util.regex.Pattern
 
-pipeline {
-    agent any
-
+node {
     parameters {
         string(
             name: 'PROJECT_KEY', 
