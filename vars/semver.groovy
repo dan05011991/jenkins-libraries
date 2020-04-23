@@ -1,6 +1,23 @@
 @Library('Pipelines') _
 
+import java.util.regex.Pattern
+
 node {
+    parameters {
+        string(
+            name: 'PROJECT_KEY', 
+            defaultValue: 'DEFAULT'
+        )
+        string(
+            name: 'RELEASE_TYPE', 
+            defaultValue: 'DEFAULT'
+        )
+        string(
+            name: 'GIT_TAG', 
+            defaultValue: 'DEFAULT'
+        )
+    }
+
     cleanWs()
     
     git(
@@ -14,6 +31,11 @@ node {
     if (RELEASE_TYPE != 'M' && RELEASE_TYPE != 'm' && RELEASE_TYPE != 'p') {
         throw new Exception('Incorrect use of the release type flag')
     }
+
+    def pattern = ${GIT_TAG} =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
+    assert matcher.find() 
+    assert matcher.size() == 1
+    assert matcher[0..-1] == ["groovier", "better"] 
 
     sh """
         if [ ! -f ${PROJECT_KEY} ]; then

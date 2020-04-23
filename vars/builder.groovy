@@ -14,8 +14,6 @@ def call(Map pipelineParams) {
     def String PROJECT_DIR
     def String DEPLOYMENT_DIR
 
-    def Boolean SHOULD_PUSH_DOCKER
-
     node {
         properties([
                 disableConcurrentBuilds()
@@ -36,7 +34,6 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = false
-            SHOULD_PUSH_DOCKER = false
 
             if (env.BRANCH_NAME.startsWith('PR-')) {
                 SOURCE_BRANCH = CHANGE_BRANCH
@@ -140,8 +137,14 @@ def call(Map pipelineParams) {
 
         stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
+            dir('project') {
+                gitTag = sh([
+                        script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
+                        returnStdout: true
+                ]).trim()
+            }
 
-            PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey)
+            PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey, gitTag)
 
             customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
@@ -198,7 +201,6 @@ def call(Map pipelineParams) {
                 step('Build Docker Image', isReleaseBuild() && !IS_BUMP_COMMIT, {
                     dir('project') {
                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        SHOULD_PUSH_DOCKER = true
                     }
                 }),
                 step('Re-tag Image', isOpsBuild(), {
@@ -206,7 +208,6 @@ def call(Map pipelineParams) {
                         referenceTag = getReferenceTag(PROJECT_VERSION)
                         sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                         sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        SHOULD_PUSH_DOCKER = true
                     }
                 })
             ])
@@ -260,11 +261,12 @@ def call(Map pipelineParams) {
     }
 }
 
-def getNewReleaseVersion(key) {
+def getNewReleaseVersion(key, tag) {
     type = getIncrementType()
     def job = build job: 'SemVer', parameters: [
             string(name: 'PROJECT_KEY', value: "${key}"),
             string(name: 'RELEASE_TYPE', value: "${type}")
+            string(name: 'GIT_TAG', value: "${tag}")
         ], 
         propagate: true, 
         wait: true
