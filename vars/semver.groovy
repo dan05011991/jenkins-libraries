@@ -54,9 +54,9 @@ def updateVersionFile(key, type, tag) {
     versionFileName = getVersionFileName(key, type)
 
     if(nonPatchOpsVersion != nonPatchSavedVersion) {
-        sh("echo \"$(./semver.sh -${type} ${tag})\" > ${versionFileName}")
+        sh("echo \"\$(./semver.sh -${type} ${tag})\" > ${versionFileName}")
     } else {
-        sh("echo \"$(./semver.sh -${type} ${nonPatchSavedVersion})\" > ${versionFileName}")
+        sh("echo \"\$(./semver.sh -${type} ${nonPatchSavedVersion})\" > ${versionFileName}")
     }
 }
 
