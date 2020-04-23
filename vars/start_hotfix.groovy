@@ -20,7 +20,7 @@ pipeline {
             }
         }
 
-        stage('Start Release') {
+        stage('Start Hotfix') {
             steps {
                 git(
                     branch: "${SOURCE_BRANCH}",
