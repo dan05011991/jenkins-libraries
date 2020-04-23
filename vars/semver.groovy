@@ -77,7 +77,7 @@ def getSavedVersion(key, type) {
 
     savedVersion = sh(
         script: """
-            if [ ! -f ${key} ]; then
+            if [ ! -f ${key}.version ]; then
                 echo "1.0.0" > ${key}.version
             else
                 cat ${key}.version
