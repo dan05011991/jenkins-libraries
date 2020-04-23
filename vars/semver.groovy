@@ -48,7 +48,7 @@ def removePatchVersion(tag) {
     def matcher = "${tag}" =~ /((?:[0-9]+\.)+)(?:[0-9]+)/
     assert matcher.find() 
     assert matcher.size() == 1
-    assert matcher[0].length() != 0
+    assert (matcher[0]).length() != 0
     return matcher[0]
 }
 
