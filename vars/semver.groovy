@@ -17,7 +17,6 @@ node {
             defaultValue: 'DEFAULT'
         )
     }
-
     cleanWs()
     
     git(
@@ -32,14 +31,17 @@ node {
         throw new Exception('Incorrect use of the release type flag')
     }
 
+    versionFileName = getVersionFileName(PROJECT_KEY, RELEASE_TYPE)
+    println versionFileName
+
     updateVersionFile(PROJECT_KEY, RELEASE_TYPE, GIT_TAG)
     sh("rm semver.sh")
 
-    sh("git add ${PROJECT_KEY}*.version")
+    sh("git add ${versionFileName}")
     sh("git commit -m \"Bumped version for ${PROJECT_KEY}\"")
     sh("git push origin master")
 
-    sh("cat ${PROJECT_KEY} > version")
+    sh("cat ${versionFileName} > version")
     archiveArtifacts artifacts: 'version', fingerprint: true
 }
 
