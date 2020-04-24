@@ -46,12 +46,12 @@ pipeline {
                     sh """
                         git checkout ${INTEGRATION_BRANCH}
                         git pull origin ${INTEGRATION_BRANCH}
-                        git merge ${SOURCE_BRANCH}
+                        git merge --no-ff ${SOURCE_BRANCH}
                         git push origin ${INTEGRATION_BRANCH}
 
                         git checkout ${OPERATIONAL_BRANCH}
                         git pull origin ${OPERATIONAL_BRANCH}
-                        git merge ${SOURCE_BRANCH}
+                        git merge --no-ff ${SOURCE_BRANCH}
                         git push origin ${OPERATIONAL_BRANCH} 
                     """
                 }
