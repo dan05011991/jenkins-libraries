@@ -2,7 +2,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def call(Map pipelineParams) {
 
-    def build = new build()
+    def build = new objects.build()
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
