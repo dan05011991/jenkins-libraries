@@ -4,7 +4,7 @@ import objects.build
 
 def call(Map pipelineParams) {
 
-    def build build = new build()
+    def build = new build()
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
