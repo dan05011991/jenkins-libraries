@@ -52,7 +52,7 @@ def call(Map pipelineParams) {
 
         stage('Pipeline setup') {
 
-            steps = pipeline.customParallel([
+            parallelSteps = pipeline.customParallel([
                     pipeline.step('Checkout Project', {
 
                         dir('project') {
@@ -80,7 +80,7 @@ def call(Map pipelineParams) {
                     })
             ])
 
-            parallel(steps)
+            parallel(parallelSteps)
         }
 
         stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
