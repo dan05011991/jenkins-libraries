@@ -1,6 +1,36 @@
 class build {
+    def pipeline
 
-    def pipeline = new customPipeline()
+    build() {
+        pipeline = new CustomPipeline()
+    }
+
+    def clean(source_branch) {
+        cleanWs()
+            
+            dir('project') {
+                deleteDir()
+            }
+
+            dir('deployment') {
+                deleteDir()
+            }
+
+            SOURCE_BRANCH = "${BRANCH_NAME}"
+            SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
+            IS_BUMP_COMMIT = false
+
+            if (env.BRANCH_NAME.startsWith('PR-')) {
+                SOURCE_BRANCH = CHANGE_BRANCH
+                IS_PR = true
+            } else {
+                SOURCE_BRANCH = BRANCH_NAME
+                IS_PR = false
+            }
+
+            echo "Source branch: ${SOURCE_BRANCH}"
+            echo "Source Url: ${SOURCE_URL}"
+    }
 
     def integration(project_dir, is_pull_request, source_branch, pipeline_params) {
         if(is_pull_request) {

@@ -1,4 +1,5 @@
 class customPipeline {
+
     def stage(name, execute, block) {
         return stage(name, execute ? block : {
             echo "skipped stage $name"
