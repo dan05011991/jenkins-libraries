@@ -86,7 +86,7 @@ def call(Map pipelineParams) {
         })
 
         stage('Integration Test') {
-            build.integration(PROJECT_DIR, IS_PR, SOURCE_BRANCH, pipelineParams)
+            parallel(build.integration(PROJECT_DIR, IS_PR, SOURCE_BRANCH, pipelineParams))
         }
 
         pipeline.stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
