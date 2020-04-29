@@ -1,5 +1,3 @@
-import customPipline
-
 class build {
 
     def customPipeline pipeline
