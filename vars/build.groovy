@@ -46,7 +46,7 @@ class build {
 
         def String unique_id = UUID.randomUUID().toString()
 
-        pipeline.customParallel([
+        parallel(pipeline.customParallel([
                 pipeline.step('Maven', pipeline_params.buildType == 'maven', {
 
                     try {
@@ -81,6 +81,6 @@ class build {
                         sh "docker rmi ${unique_id}"
                     }
                 })
-        ])
+        ]))
     }
 }
