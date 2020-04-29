@@ -3,6 +3,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 def call(Map pipelineParams) {
 
     def build = new build()
+    def pipeline = new customPipeline()
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
@@ -51,7 +52,7 @@ def call(Map pipelineParams) {
 
         stage('Pipeline setup') {
 
-            customParallel([
+            pipeline.customParallel([
                     step('Checkout Project', {
 
                         dir('project') {
