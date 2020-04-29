@@ -2,7 +2,7 @@ class build {
     def pipeline
 
     build() {
-        pipeline = new CustomPipeline()
+        pipeline = new customPipeline()
     }
 
     def clean(source_branch) {
