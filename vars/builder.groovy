@@ -80,7 +80,7 @@ def call(Map pipelineParams) {
                     })
             ])
 
-            parallel(map)
+            parallel(steps)
         }
 
         stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
