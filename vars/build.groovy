@@ -47,7 +47,7 @@ class build {
         def String unique_id = UUID.randomUUID().toString()
 
         pipeline.customParallel([
-                pipeline.step('Maven', pipelineParams.buildType == 'maven', {
+                pipeline.step('Maven', pipeline_params.buildType == 'maven', {
 
                     try {
                         dir("$project_dir") {
@@ -64,7 +64,7 @@ class build {
                         sh "docker rmi ${unique_id}"
                     }
                 }),
-                pipeline.step('Gulp', pipelineParams.buildType == 'gulp', {
+                pipeline.step('Gulp', pipeline_params.buildType == 'gulp', {
 
                     try {
                         dir("$project_dir") {
