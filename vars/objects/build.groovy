@@ -1,6 +1,6 @@
 import customPipline
 
-class Build {
+class build {
 
     def customPipeline pipeline
 
