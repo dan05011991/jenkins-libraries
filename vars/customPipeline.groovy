@@ -27,6 +27,7 @@ class customPipeline {
             map.put(step.name, step.value)
         }
 
+        println map
         return map
     }
 }
