@@ -53,7 +53,7 @@ def call(Map pipelineParams) {
         stage('Pipeline setup') {
 
             pipeline.customParallel([
-                    step('Checkout Project', {
+                    pipeline.step('Checkout Project', {
 
                         dir('project') {
 
@@ -69,7 +69,7 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Create pipeline scripts', {
+                    pipeline.step('Create pipeline scripts', {
 
                         dir('project') {
 
