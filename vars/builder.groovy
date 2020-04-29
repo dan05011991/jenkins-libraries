@@ -2,8 +2,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def call(Map pipelineParams) {
 
-    def build = new build()
-    def pipeline = new customPipeline()
+    
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
@@ -18,6 +17,9 @@ def call(Map pipelineParams) {
     def String DEPLOYMENT_DIR
 
     node {
+        def build = new build()
+        def pipeline = new customPipeline()
+
         properties([
                 disableConcurrentBuilds()
         ])
