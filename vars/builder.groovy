@@ -1,10 +1,9 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
-import objects.customPipeline
-import objects.build
 
 def call(Map pipelineParams) {
 
-    def build = new build()
+    def build = load 'build.groovy'
+    def custom_pipeline = load 'customPipeline.groovy'
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
