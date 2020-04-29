@@ -1,6 +1,6 @@
 class build {
 
-    def customPipeline pipeline
+    def pipeline = new customPipeline()
 
     def integration(project_dir, is_pull_request, source_branch, pipeline_params) {
         if(is_pull_request) {
