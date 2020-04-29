@@ -27,7 +27,7 @@ class customPipeline {
             map.put(step.name, step.value)
         }
 
-        parallel(map)
+        return map
     }
 }
 
