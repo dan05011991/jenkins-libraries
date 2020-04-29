@@ -1,6 +1,10 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+import objects.customPipeline
+import objects.build
 
 def call(Map pipelineParams) {
+
+    def build build = new build()
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
@@ -83,56 +87,7 @@ def call(Map pipelineParams) {
         })
 
         stage('Integration Test') {
-
-            if(IS_PR) {
-                dir("${PROJECT_DIR}") {
-                    sh """
-                        git checkout develop
-                        git pull origin develop
-                        git checkout ${SOURCE_BRANCH}
-                        git merge develop
-                    """
-                }
-            }
-
-            def String unique_Id = UUID.randomUUID().toString()
-
-            customParallel([
-                    step('Maven', pipelineParams.buildType == 'maven', {
-
-                        try {
-                            dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
-                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/target/surefire-reports ."
-                            }
-                        } finally {
-                            dir("$PROJECT_DIR") {
-                                junit 'surefire-reports/**/*.xml'
-                            }
-
-                            sh "docker rm -f ${unique_Id}"
-                            sh "docker rmi ${unique_Id}"
-                        }
-                    }),
-                    step('Gulp', pipelineParams.buildType == 'gulp', {
-
-                        try {
-                            dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
-                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
-                            }
-                        } finally {
-                            dir("$PROJECT_DIR") {
-                                junit 'junit/**/*.xml'
-                            }
-
-                            sh "docker rm -f ${unique_Id}"
-                            sh "docker rmi ${unique_Id}"
-                        }
-                    })
-            ])
+            build.integration()
         }
 
         stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
@@ -361,36 +316,5 @@ def createScript(scriptName) {
     def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
     writeFile file: "${scriptName}", text: scriptContent
     sh "chmod +x ${scriptName}"
-}
-
-def stage(name, execute, block) {
-    return stage(name, execute ? block : {
-        echo "skipped stage $name"
-        Utils.markStageSkippedForConditional(name)
-    })
-}
-
-def step(name, block) {
-    return step(name, true, block)  
-}
-
-def step(name, execute, block) {
-    return [
-            'name': name,
-            'value': execute ? block : {
-                echo "skipped stage $name"
-                Utils.markStageSkippedForConditional(name)
-            }
-    ]
-}
-
-def customParallel(steps) {
-    def map = [:]
-
-    steps.each { step ->
-        map.put(step.name, step.value)
-    }
-
-    parallel(map)
 }
 
