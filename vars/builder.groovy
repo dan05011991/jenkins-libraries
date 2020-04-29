@@ -2,8 +2,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def call(Map pipelineParams) {
 
-    
-
     def String SOURCE_BRANCH
     def String SOURCE_URL
     def Boolean IS_PR
@@ -54,7 +52,7 @@ def call(Map pipelineParams) {
 
         stage('Pipeline setup') {
 
-            parallelSteps = pipeline.customParallel([
+            parallel(pipeline.customParallel([
                     pipeline.step('Checkout Project', {
 
                         dir('project') {
@@ -80,12 +78,10 @@ def call(Map pipelineParams) {
                             }
                         }
                     })
-            ])
-
-            parallel(parallelSteps)
+            ]))
         }
 
-        stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
+        pipeline.stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
             echo "This is a bump commit build - exiting early"
         })
 
@@ -93,7 +89,7 @@ def call(Map pipelineParams) {
             build.integration()
         }
 
-        stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
+        pipeline.stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
             dir('project') {
                 gitTag = sh([
@@ -104,7 +100,7 @@ def call(Map pipelineParams) {
 
             PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey, gitTag)
 
-            customParallel([
+            parallel(pipeline.customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
@@ -139,10 +135,10 @@ def call(Map pipelineParams) {
                             }
                         }
                     })
-            ])
+            ]))
         })
 
-        stage('Docker Building & Re-tagging', isReleaseBuild() || isOpsBuild(), {
+        pipeline.stage('Docker Building & Re-tagging', isReleaseBuild() || isOpsBuild(), {
 
             stage('Get missing tag', isOpsBuild(), {  
                 dir('project') {
@@ -155,7 +151,7 @@ def call(Map pipelineParams) {
 
             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
-            customParallel([
+            parallel.pipeline(customParallel([
                 step('Build Docker Image', isReleaseBuild() && !IS_BUMP_COMMIT, {
                     dir('project') {
                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
@@ -168,10 +164,10 @@ def call(Map pipelineParams) {
                         sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
                     }
                 })
-            ])
+            ]))
         })
 
-        stage('Prepare project for next iteration', isReleaseBuild() && !IS_BUMP_COMMIT, {
+        pipeline.stage('Prepare project for next iteration', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
             stage('Tag git release', true, {
                 dir('project') {
@@ -179,7 +175,7 @@ def call(Map pipelineParams) {
                 }
             })
 
-            customParallel([
+            parallel(customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
@@ -189,10 +185,10 @@ def call(Map pipelineParams) {
                             sh 'git commit -m "[Automated commit: version bump]"'
                         }
                     })
-            ])
+            ]))
         })
 
-        stage('Push Docker Updates', (isReleaseBuild() && !IS_BUMP_COMMIT) || isOpsBuild(), {
+        pipeline.stage('Push Docker Updates', (isReleaseBuild() && !IS_BUMP_COMMIT) || isOpsBuild(), {
             dir('project') {
                 script {
                     withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
@@ -202,7 +198,7 @@ def call(Map pipelineParams) {
             }
         })
 
-        stage('Push Project Updates', (isReleaseBuild() || isOpsBuild()) && !IS_BUMP_COMMIT, {
+        pipeline.stage('Push Project Updates', (isReleaseBuild() || isOpsBuild()) && !IS_BUMP_COMMIT, {
             dir('project') {
                 sshagent(credentials: ['ssh']) {
                     sh "git push origin ${SOURCE_BRANCH}"
