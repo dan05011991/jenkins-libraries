@@ -17,8 +17,8 @@ def call(Map pipelineParams) {
     def String DEPLOYMENT_DIR
 
     node {
-        def build = load 'build.groovy'
-        def custom_pipeline = load 'customPipeline.groovy'
+        def build = load 'vars/objects/build.groovy'
+        def custom_pipeline = load 'vars/objects/customPipeline.groovy'
 
         properties([
                 disableConcurrentBuilds()
