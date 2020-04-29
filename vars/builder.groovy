@@ -2,7 +2,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def call(Map pipelineParams) {
 
-    
+    def build build = new build()
 
     def String SOURCE_BRANCH
     def String SOURCE_URL
@@ -17,9 +17,6 @@ def call(Map pipelineParams) {
     def String DEPLOYMENT_DIR
 
     node {
-        def build = load 'vars/objects/build.groovy'
-        def custom_pipeline = load 'vars/objects/customPipeline.groovy'
-
         properties([
                 disableConcurrentBuilds()
         ])
