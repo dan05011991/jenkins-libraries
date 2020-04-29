@@ -1,10 +1,10 @@
 class customPipeline {
 
     def stage(name, execute, block) {
-        return stage(name, execute ? block : {
+        return execute ? block : {
             echo "skipped stage $name"
             Utils.markStageSkippedForConditional(name)
-        })
+        }
     }
 
     def step(name, block) {
