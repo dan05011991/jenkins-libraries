@@ -6,6 +6,10 @@ pipeline {
             name: 'Label', 
             defaultValue: 'DEFAULT', 
             description: 'This is unique name which will be prefixed on the end of the branch e.g. release/mylabel'
+        ),
+         string(
+            name: 'Project', 
+            defaultValue: 'DEFAULT'
         )
     }
 
@@ -36,7 +40,7 @@ pipeline {
             steps {
                 git(
                     branch: "${SOURCE_BRANCH}",
-                    url: "git@github.com:dan05011991/demo-application-backend.git",
+                    url: "git@github.com:dan05011991/${project}.git",
                     credentialsId: 'ssh'
                 )
 
