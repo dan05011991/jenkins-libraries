@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     parameters {
+        choice(
+            name: 'Project', 
+            choices: ['barebones-react','demo-application-backend'], 
+            description: ''
+        )
         string(
             name: 'Label', 
             defaultValue: 'DEFAULT', 
             description: 'This is unique name which will be prefixed on the end of the branch e.g. release/mylabel'
-        )
-        string(
-            name: 'Project', 
-            defaultValue: 'DEFAULT'
         )
     }
 
