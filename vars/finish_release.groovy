@@ -6,7 +6,7 @@ pipeline {
             name: 'Release', 
             defaultValue: 'DEFAULT', 
             description: 'This is the release branch you wish to finish. This will merge the changes into master and develop'
-        ),
+        )
         string(
             name: 'Project', 
             defaultValue: 'DEFAULT'
