@@ -6,6 +6,10 @@ pipeline {
             name: 'Release', 
             defaultValue: 'DEFAULT', 
             description: 'This is the release branch you wish to finish. This will merge the changes into master and develop'
+        ),
+        string(
+            name: 'Project', 
+            defaultValue: 'DEFAULT'
         )
     }
 
@@ -38,7 +42,7 @@ pipeline {
             steps {
                 git(
                     branch: "${SOURCE_BRANCH}",
-                    url: "git@github.com:dan05011991/demo-application-backend.git",
+                    url: "git@github.com:dan05011991/${project}.git",
                     credentialsId: 'ssh'
                 )
 
