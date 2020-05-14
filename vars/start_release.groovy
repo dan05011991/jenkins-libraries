@@ -4,7 +4,7 @@ pipeline {
     parameters {
         choice(
             name: 'Project', 
-            choices: ['barebones-react','demo-application-backend'], 
+            choices: ['dan05011991/barebones-react','dan05011991/demo-application-backend','vickeryw/bandpCore'], 
             description: ''
         )
         string(
@@ -41,7 +41,7 @@ pipeline {
             steps {
                 git(
                     branch: "${SOURCE_BRANCH}",
-                    url: "git@github.com:dan05011991/${project}.git",
+                    url: "git@github.com::${project}.git",
                     credentialsId: 'ssh'
                 )
 
