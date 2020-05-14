@@ -41,7 +41,7 @@ pipeline {
             steps {
                 git(
                     branch: "${SOURCE_BRANCH}",
-                    url: "git@github.com::${project}.git",
+                    url: "git@github.com:${project}.git",
                     credentialsId: 'ssh'
                 )
 
