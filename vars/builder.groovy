@@ -14,9 +14,10 @@ def call(Map pipelineParams) {
     def String PROJECT_DIR
     def String DEPLOYMENT_DIR
 
-    def Boolean SHOULD_PUSH_DOCKER
-
     node {
+        def build = new build()
+        def pipeline = new customPipeline()
+
         properties([
                 disableConcurrentBuilds()
         ])
@@ -36,7 +37,6 @@ def call(Map pipelineParams) {
             SOURCE_BRANCH = "${BRANCH_NAME}"
             SOURCE_URL = "${scm.userRemoteConfigs[0].url}"
             IS_BUMP_COMMIT = false
-            SHOULD_PUSH_DOCKER = false
 
             if (env.BRANCH_NAME.startsWith('PR-')) {
                 SOURCE_BRANCH = CHANGE_BRANCH
@@ -52,8 +52,8 @@ def call(Map pipelineParams) {
 
         stage('Pipeline setup') {
 
-            customParallel([
-                    step('Checkout Project', {
+            parallel(pipeline.customParallel([
+                    pipeline.step('Checkout Project', {
 
                         dir('project') {
 
@@ -69,7 +69,7 @@ def call(Map pipelineParams) {
                             }
                         }
                     }),
-                    step('Create pipeline scripts', {
+                    pipeline.step('Create pipeline scripts', {
 
                         dir('project') {
 
@@ -78,73 +78,33 @@ def call(Map pipelineParams) {
                             }
                         }
                     })
-            ])
+            ]))
         }
 
-        stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
+        pipeline.stage('Is Bump Commit?', isSpecialBuild() && IS_BUMP_COMMIT, {
             echo "This is a bump commit build - exiting early"
         })
 
         stage('Integration Test') {
-
-            if(IS_PR) {
-                dir("${PROJECT_DIR}") {
-                    sh """
-                        git checkout develop
-                        git pull origin develop
-                        git checkout ${SOURCE_BRANCH}
-                        git merge develop
-                    """
-                }
-            }
-
-            def String unique_Id = UUID.randomUUID().toString()
-
-            customParallel([
-                    step('Maven', pipelineParams.buildType == 'maven', {
-
-                        try {
-                            dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id} mvn surefire-report:report"
-                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/target/surefire-reports ."
-                            }
-                        } finally {
-                            dir("$PROJECT_DIR") {
-                                junit 'surefire-reports/**/*.xml'
-                            }
-
-                            sh "docker rm -f ${unique_Id}"
-                            sh "docker rmi ${unique_Id}"
-                        }
-                    }),
-                    step('Gulp', pipelineParams.buildType == 'gulp', {
-
-                        try {
-                            dir("$PROJECT_DIR") {
-                                sh "docker build -f ${pipelineParams.test} . -t ${unique_Id}"
-                                sh "docker run --name ${unique_Id} ${unique_Id} ./node_modules/gulp/bin/gulp test"
-                                sh "docker cp \$(docker ps -aqf \"name=${unique_Id}\"):/usr/webapp/tests/junit ."
-                            }
-                        } finally {
-                            dir("$PROJECT_DIR") {
-                                junit 'junit/**/*.xml'
-                            }
-
-                            sh "docker rm -f ${unique_Id}"
-                            sh "docker rmi ${unique_Id}"
-                        }
-                    })
-            ])
+            parallel(build.integration(PROJECT_DIR, IS_PR, SOURCE_BRANCH, pipelineParams))
         }
 
-        stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
+        pipeline.stage('Update project version', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
-            customParallel([
+            dir('project') {
+                gitTag = sh([
+                        script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
+                        returnStdout: true
+                ]).trim()
+            }
+
+            PROJECT_VERSION = getNewReleaseVersion(pipelineParams.projectKey, gitTag)
+
+            parallel(pipeline.customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
-                            sh 'mvn versions:set -DremoveSnapshot'
+                            sh "mvn versions:set -DnewVersion=${PROJECT_VERSION}"
                             sh 'git add pom.xml'
                             sh 'git commit -m "[Automated commit: Project released]"'
 
@@ -165,11 +125,6 @@ def call(Map pipelineParams) {
                                         returnStdout: true
                                 )
 
-                                PROJECT_VERSION = sh(
-                                        script: "./increment_version.sh ${UI_VERSION}",
-                                        returnStdout: true
-                                ).trim()
-
                                 sh("""
                                     #!/bin/bash
                                     sed -i "s/appVersion: '${UI_VERSION}'/appVersion: '${PROJECT_VERSION}'/g" conf/config-release.js
@@ -180,12 +135,12 @@ def call(Map pipelineParams) {
                             }
                         }
                     })
-            ])
+            ]))
         })
 
-        stage('Docker Building & Re-tagging', isReleaseBuild() || isOpsBuild(), {
+        pipeline.stage('Docker Building & Re-tagging', isReleaseBuild() || isOpsBuild(), {
 
-            step('Get missing tag', isOpsBuild(), {  
+            stage('Get missing tag', isOpsBuild(), {  
                 dir('project') {
                     PROJECT_VERSION = sh([
                             script: 'git describe --tags | sed -n -e "s/\\([0-9]\\)-.*/\\1/ p"',
@@ -196,11 +151,10 @@ def call(Map pipelineParams) {
 
             DOCKER_TAG_VERSION = getDockerTag(PROJECT_VERSION)
 
-            customParallel([
+            parallel.pipeline(customParallel([
                 step('Build Docker Image', isReleaseBuild() && !IS_BUMP_COMMIT, {
                     dir('project') {
                         sh "docker build . -t ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        SHOULD_PUSH_DOCKER = true
                     }
                 }),
                 step('Re-tag Image', isOpsBuild(), {
@@ -208,13 +162,12 @@ def call(Map pipelineParams) {
                         referenceTag = getReferenceTag(PROJECT_VERSION)
                         sh "docker pull ${pipelineParams.imageName}${referenceTag}"
                         sh "docker tag ${pipelineParams.imageName}${referenceTag} ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                        SHOULD_PUSH_DOCKER = true
                     }
                 })
-            ])
+            ]))
         })
 
-        stage('Prepare project for next iteration', isReleaseBuild() && !IS_BUMP_COMMIT, {
+        pipeline.stage('Prepare project for next iteration', isReleaseBuild() && !IS_BUMP_COMMIT, {
 
             stage('Tag git release', true, {
                 dir('project') {
@@ -222,7 +175,7 @@ def call(Map pipelineParams) {
                 }
             })
 
-            customParallel([
+            parallel(customParallel([
                     step('Maven', pipelineParams.buildType == 'maven', {
 
                         dir('project') {
@@ -232,34 +185,54 @@ def call(Map pipelineParams) {
                             sh 'git commit -m "[Automated commit: version bump]"'
                         }
                     })
-            ])
+            ]))
         })
 
-        stage('Push Project Updates', isReleaseBuild(), {
+        pipeline.stage('Push Docker Updates', (isReleaseBuild() && !IS_BUMP_COMMIT) || isOpsBuild(), {
+            dir('project') {
+                script {
+                    withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
+                        sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
+                    }
+                }
+            }
+        })
 
-            customParallel([
-                    step('Push docker image', SHOULD_PUSH_DOCKER, {
-
-                        dir('project') {
-                            script {
-                                withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
-                                    sh "docker push ${pipelineParams.imageName}${DOCKER_TAG_VERSION}"
-                                }
-                            }
-                        }
-                    }),
-                    step('Push project update', !IS_BUMP_COMMIT, {
-
-                        dir('project') {
-                            sshagent(credentials: ['ssh']) {
-                                sh "git push origin ${SOURCE_BRANCH}"
-                                sh "git push origin ${PROJECT_VERSION}"
-                            }
-                        }
-                    })
-            ])
+        pipeline.stage('Push Project Updates', (isReleaseBuild() || isOpsBuild()) && !IS_BUMP_COMMIT, {
+            dir('project') {
+                sshagent(credentials: ['ssh']) {
+                    sh "git push origin ${SOURCE_BRANCH}"
+                    sh "git push origin ${PROJECT_VERSION}"
+                }
+            }
         })
     }
+}
+
+def getNewReleaseVersion(key, tag) {
+    type = getIncrementType()
+    def job = build job: 'SemVer', parameters: [
+            string(name: 'PROJECT_KEY', value: "${key}"),
+            string(name: 'RELEASE_TYPE', value: "${type}"),
+            string(name: 'GIT_TAG', value: "${tag}")
+        ], 
+        propagate: true, 
+        wait: true
+        
+    def jobResult = job.getResult()
+     
+    copyArtifacts(
+        fingerprintArtifacts: true, 
+        projectName: 'SemVer', 
+        selector: specific("${job.number}")
+    )
+    
+    version = sh(
+        script: 'cat version',  
+        returnStdout: true
+        ).trim()
+    
+    return version
 }
 
 def doesTagExist(tag) {
@@ -326,43 +299,21 @@ def isOpsBuild() {
 }
 
 def isReleaseBuild() {
-    return BRANCH_NAME.startsWith('release/')
+    return BRANCH_NAME.startsWith('release/') || BRANCH_NAME.startsWith('hotfix/')
+}
+
+def getIncrementType() {
+    if(BRANCH_NAME.startsWith('release/')) {
+        return 'm';
+    } else if(BRANCH_NAME.startsWith('hotfix/')) {
+        return 'p'
+    }
+    throw new Exception('Incorrect use of this function');
 }
 
 def createScript(scriptName) {
     def scriptContent = libraryResource "com/corp/pipeline/scripts/${scriptName}"
     writeFile file: "${scriptName}", text: scriptContent
     sh "chmod +x ${scriptName}"
-}
-
-def stage(name, execute, block) {
-    return stage(name, execute ? block : {
-        echo "skipped stage $name"
-        Utils.markStageSkippedForConditional(name)
-    })
-}
-
-def step(name, block) {
-    return step(name, true, block)  
-}
-
-def step(name, execute, block) {
-    return [
-            'name': name,
-            'value': execute ? block : {
-                echo "skipped stage $name"
-                Utils.markStageSkippedForConditional(name)
-            }
-    ]
-}
-
-def customParallel(steps) {
-    def map = [:]
-
-    steps.each { step ->
-        map.put(step.name, step.value)
-    }
-
-    parallel(map)
 }
 
