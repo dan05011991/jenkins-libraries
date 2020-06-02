@@ -25,18 +25,6 @@ pipeline {
             }
         }
 
-        stage('Obtain approval') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') { 
-                    input(
-                            message: "Please provide approval for release to start",
-                            ok: 'Approved',
-                            submitter: 'john'
-                    )
-                }
-            }
-        }
-
         stage('Start Release') {
             steps {
                 git(
