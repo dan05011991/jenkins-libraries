@@ -1,5 +1,3 @@
-@Library('Pipelines') _
-
 import java.util.regex.Pattern
 
 node {
