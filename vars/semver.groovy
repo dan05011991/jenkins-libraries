@@ -39,7 +39,10 @@ node {
 
     sh("git add ${versionFileName}")
     sh("git commit -m \"Bumped version for ${PROJECT_KEY}\"")
-    sh("git push origin master")
+    
+    sshagent(['ssh']) {
+        sh("git push origin master")
+    }
 
     sh("cat ${versionFileName} > version")
     archiveArtifacts artifacts: 'version', fingerprint: true
